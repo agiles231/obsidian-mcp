@@ -132,25 +132,41 @@ err := srv.Run(ctx)              // blocks; cancel ctx for graceful shutdown
 ## 5. Open design questions to resolve early (in THIS repo)
 
 1. **Vault access: direct filesystem vs. proxy through an Obsidian CLI.**
-   - *Direct FS:* full control, simplest, no external process; we build any
-     indexing ourselves.
-   - *Obsidian CLI proxy:* get Obsidian's link-resolution + frontmatter index
-     "for free," enabling richer tools — but binds us to an external,
-     possibly-TUI process and its lifecycle. **Action: confirm the Obsidian CLI
-     has a real non-interactive/scriptable mode before betting on it** (it
-     looked more TUI than CLI). Undecided; affects everything below.
+   - **RESOLVED (2026-06-29): direct filesystem access.** The Obsidian CLI was
+     investigated — it does have a non-interactive mode (not TUI-only, which
+     was the worry), but its capability surface is too limited to be worth
+     binding to an external process and its lifecycle. We'd end up building our
+     own indexing regardless. Direct FS gives full control and keeps everything
+     local and auditable.
+   - *(historical)* *Obsidian CLI proxy:* would have given Obsidian's
+     link-resolution + frontmatter index "for free," but at the cost of an
+     external dependency. Rejected.
 
 2. **Note/section identity (the "URN" question).**
-   - Path-based URIs (`obsidian://note/{path}#{anchor}`): zero-setup but break
-     on rename/move.
-   - Stable id (`urn:obsidian:note:{id}` from a frontmatter `id`): survives
-     rename/move but needs an index from id → path (which a CLI proxy might
-     already maintain — ties into Q1).
-   - **Section addressing should reuse Obsidian's own link grammar** —
-     `[[Note#Heading]]`, `[[Note#Heading#Sub]]`, block refs `[[Note#^blockid]]`.
-     That heading/block anchor syntax IS the de-facto section identifier; lift
-     it rather than inventing one. Goal: **one identifier vocabulary shared
-     across read (and later resource) and write.**
+   - **RESOLVED (2026-06-29): a `urn:obsidian:` URN over path-based identity.**
+     Full spec in [`docs/urn-spec.md`](docs/urn-spec.md). Canonical form:
+     `urn:obsidian:<user>:<vault>:<type>:<identifier>#<anchor>` — in v1 `user`
+     is always empty (reserved, literal `::`), `vault` is populated, `type` is
+     `note`, `identifier` is a vault-relative path, anchor uses Obsidian's own
+     grammar (`#Heading`, `#Heading#Sub`, `#^blockid`).
+   - **Why URN not URL:** identity is a *naming* concern; `obsidian://` is a
+     live OS-registered *locator* (opens the app) and reusing it would be
+     squatting. (A real `obsidian://open?...` URL may still be emitted as a
+     separate "open in Obsidian" convenience — distinct from identity.)
+   - **Path-based, not frontmatter-id.** Path is intrinsic, can't desync, needs
+     no plugin, and is legible to the LLM. Rename-breakage is transient and
+     self-healing for a re-querying agent; the id approach's cost (a minting
+     plugin + an id→path index + cache invalidation) is permanent — bad
+     asymmetry. The URN does NOT grant rename-stability; it gives us a clean
+     seam (`type=id`, reserved) to add a location-independent id mode later,
+     additively. A search-by-basename fallback on resolve-miss can recover most
+     moves without any index.
+   - **Resolver: liberal in, canonical out.** Accepts a full URN or a bare
+     vault-relative path; emits the canonical URN everywhere. Wikilink/name
+     input (`[[Note]]`) is rejected — name resolution adds ambiguity and a
+     failure mode the client would have to special-case, for little gain.
+   - Goal achieved: **one identifier vocabulary shared across read (and later
+     resource) and write.**
 
 3. **Access-control layer design.** Where/how to enforce the readable/writable
    allow-list + sensitive-dir deny-list, *before* a tool touches disk. Likely a
