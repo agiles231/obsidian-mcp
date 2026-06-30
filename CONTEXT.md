@@ -168,11 +168,13 @@ err := srv.Run(ctx)              // blocks; cancel ctx for graceful shutdown
    - Goal achieved: **one identifier vocabulary shared across read (and later
      resource) and write.**
 
-3. **Access-control layer design.** Where/how to enforce the readable/writable
-   allow-list + sensitive-dir deny-list, *before* a tool touches disk. Likely a
-   shared component all obsidian tools route through (e.g. a vault abstraction
-   that resolves + validates a vault-relative path and refuses escapes via
-   `..`, symlinks, or deny-listed dirs). This is the security spine.
+3. **Access-control layer design. RESOLVED (2026-06-29).** A single `Vault`
+   abstraction is the sole gateway to disk; tools never touch the filesystem
+   directly. See ADRs [0003](docs/adr/0003-vault-sole-disk-gateway.md) (Vault as
+   sole gateway, fail-closed glob allow/deny), [0004](docs/adr/0004-os-root-containment.md)
+   (build containment on `os.Root`, Go 1.24+; deny also re-checked on the
+   symlink-resolved real path), and [0005](docs/adr/0005-refusal-error-model.md)
+   (split refusal taxonomy; deny ⇒ opaque not-found). **Requires Go 1.24+.**
 
 ## 6. First milestone
 
