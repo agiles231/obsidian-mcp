@@ -27,6 +27,7 @@ func compile(globs []string, deny bool) (patternSet, error) {
 			return nil, fmt.Errorf("bad glob %q: %w", g, err)
 		}
 		ps = append(ps, strings.Split(g, "/"))
+		// if deny, add a "**" at the end to match all subdirs and objects
 		if deny && !strings.Contains(g, "**") {
 			ps = append(ps, strings.Split(g+"/**", "/"))
 		}
@@ -40,7 +41,7 @@ func matchSegs(pat, name []string) bool {
 		return len(name) == 0
 	}
 	if pat[0] == "**" {
-		for i := 0; i < len(name); i++ {
+		for i := 0; i < len(name)+1; i++ {
 			if matchSegs(pat[1:], name[i:]) {
 				return true
 			}

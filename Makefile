@@ -14,6 +14,6 @@ build: vet
 	go build ./...
 
 lint:
-	golangcli-lint run
+	golangci-lint run
 
 check: fmt vet lint test

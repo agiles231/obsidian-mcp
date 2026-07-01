@@ -39,7 +39,7 @@ func Open(cfg Config) (*Vault, error) {
 	// Resolve the root's own symlinks so real-path checks in resolve() align
 	rootPath, err := filepath.EvalSymlinks(filepath.Clean(cfg.Root))
 	if err != nil {
-
+		return nil, fmt.Errorf("vault: error opening root %s: %v", cfg.Root, err)
 	}
 	if fi, err := os.Stat(rootPath); err != nil || !fi.IsDir() {
 		return nil, fmt.Errorf("vault: root not a directory: %s", cfg.Root)
@@ -73,7 +73,7 @@ func Open(cfg Config) (*Vault, error) {
 func (v *Vault) Name() string { return v.name }
 
 const maxNoteBytes = 10 << 20 // 10 MiB cap for single note
-func (v *Vault) ReadFile(ctx context.Context, rel string) ([]byte, error) {
+func (v *Vault) ReadFile(ctx context.Context, rel string) (buf []byte, err error) {
 	if err := ctx.Err(); err != nil {
 		return nil, err
 	}
@@ -86,7 +86,13 @@ func (v *Vault) ReadFile(ctx context.Context, rel string) ([]byte, error) {
 		v.log.Warn("open failed", "path", clean, "err", err)
 		return nil, mapFSError(err)
 	}
-	defer f.Close()
+	defer func() {
+		closeErr := f.Close()
+		if closeErr != nil {
+			buf = nil
+			err = mapFSError(closeErr)
+		}
+	}()
 	data, err := readCapped(f, maxNoteBytes) // prevent local DoS from giant file
 	if err != nil {
 		v.log.Warn("read failed", "path", clean, "err", err)
