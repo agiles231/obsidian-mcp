@@ -195,7 +195,11 @@ func cleanVaultRel(rel string) (string, error) {
 	if rel == "" {
 		return "", errInvalid
 	}
-	s := filepath.ToSlash(rel)
+	s := strings.ReplaceAll(rel, "\\", "/")
+	if len(s) >= 2 && s[1] == ':' && ((s[0] >= 'A' && s[0] <= 'Z') || (s[0] >= 'a' && s[0] <= 'z')) {
+		return "", errOutsideVault
+	}
+	s = filepath.ToSlash(s)
 	c := path.Clean(s)
 	if path.IsAbs(c) {
 		return "", errOutsideVault
