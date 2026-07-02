@@ -48,11 +48,11 @@ func Open(cfg Config) (*Vault, error) {
 	if err != nil {
 		return nil, err
 	}
-	writeAllow, err := compile(cfg.ReadAllow, false)
+	writeAllow, err := compile(cfg.WriteAllow, false)
 	if err != nil {
 		return nil, err
 	}
-	deny, err := compile(cfg.ReadAllow, false)
+	deny, err := compile(cfg.Deny, true)
 	if err != nil {
 		return nil, err
 	}
