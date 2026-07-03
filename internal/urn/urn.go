@@ -103,7 +103,7 @@ func parseURN(input string) (*NoteRef, error) {
 	// Strip prefix - case insensitive
 	nss := input[len(urnPrefix):]
 
-	// Splot off anchor at first #
+	// Split off anchor at first #
 	var rawAnchor string
 	if idx := strings.Index(nss, "#"); idx != -1 {
 		rawAnchor = nss[idx+1:]
@@ -122,7 +122,10 @@ func parseURN(input string) (*NoteRef, error) {
 		return nil, ErrUserReserved
 	}
 	vault, err := url.PathUnescape(vault)
-	if err != nil || vault == "" {
+	if err != nil {
+		return nil, ErrInvalidURN
+	}
+	if vault == "" {
 		return nil, ErrEmptyVault
 	}
 	if rtype != "note" {
@@ -168,6 +171,7 @@ func decodePath(encoded string) (string, error) {
 	segments := strings.Split(encoded, "/")
 	for i, seg := range segments {
 		if seg == "" {
+			return "", fmt.Errorf("%w: empty path segment", ErrInvalidURN)
 		}
 		decoded, err := url.PathUnescape(seg)
 		if err != nil {
