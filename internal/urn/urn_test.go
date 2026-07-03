@@ -149,3 +149,84 @@ func TestParseRef(t *testing.T) {
 		})
 	}
 }
+
+func TestParseRef_BarePath(t *testing.T) {
+	tests := []struct {
+		name string
+		input string
+		defaultVault string
+		wantPath string
+		wantErr error
+	}{
+		{
+			name: "simple path",
+			input: "Projects/foo.md",
+			defaultVault: "my-vault",
+			wantPath: "Projects/foo.md",
+		},
+		{
+			name: "root file",
+			input: "readme.md",
+			defaultVault: "vault",
+			wantPath: "readme.md",
+		},
+		{
+			name: "strips leading slash",
+			input: "/Projects/foo.md",
+			defaultVault: "vault",
+			wantPath: "Projects/foo.md",
+		},
+		{
+			name: "strips trailing slash",
+			input: "Projects/",
+			defaultVault: "vault",
+			wantPath: "Projects",
+		},
+		{
+			name: "empty path",
+			input: "",
+			defaultVault: "vault",
+			wantErr: ErrEmptyPath,
+		},
+		{
+			name: "no default vault",
+			input: "foo.md",
+			defaultVault: "",
+			wantErr: ErrEmptyVault,
+		},
+		{
+			name: "double slash",
+			input: "a//b.md",
+			defaultVault: "vault",
+			wantErr: ErrEmptyPath,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ref, err := ParseRef(tt.input, tt.defaultVault)
+			if err != nil && tt.wantErr == nil {
+				t.Errorf("ParseRef(%q, %q) error = %v, want nil", tt.input, tt.defaultVault, err)
+			}
+			if tt.wantErr != nil && err == nil {
+				t.Errorf("ParseRef(%q, %q) error nil, want %v", tt.input, tt.defaultVault, tt.wantErr)
+			}
+			if err != nil && tt.wantErr != nil {
+				if !errors.Is(err, tt.wantErr) {
+					t.Errorf("ParseRef(%q, %q) error %v, want %v", tt.input, tt.defaultVault, err, tt.wantErr)
+				}
+				if ref != nil {
+					t.Errorf("ParseRef(%q, %q) ref = %v, want nil", tt.input, tt.defaultVault, ref)
+				}
+				return
+			}
+
+			if ref.Vault != tt.defaultVault {
+				t.Errorf("Vault = %q, want: %q", ref.Vault, tt.defaultVault)
+			}
+			if ref.Path != tt.wantPath {
+				t.Errorf("Path = %q, want: %q", ref.Path, tt.wantPath)
+			}
+		})
+	}
+}
