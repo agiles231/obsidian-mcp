@@ -53,7 +53,7 @@ func encodeField(s string) string {
 	var sb strings.Builder
 	for _, r := range s {
 		if shouldEncode(r) {
-			sb.WriteString(url.PathEscape(string(r)))
+			sb.WriteString(encodeRune(r))
 		} else {
 			sb.WriteRune(r)
 		}
@@ -67,6 +67,15 @@ func encodePath(p string) string {
 		segments[i] = encodeField(seg)
 	}
 	return strings.Join(segments, "/")
+}
+
+func encodeRune(r rune) string {
+	switch r {
+	case ':':
+		return "%3A"
+	default:
+		return url.PathEscape(string(r))
+	}
 }
 
 func shouldEncode(r rune) bool {

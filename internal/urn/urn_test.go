@@ -230,3 +230,95 @@ func TestParseRef_BarePath(t *testing.T) {
 		})
 	}
 }
+
+func TestNoteRef_URN(t *testing.T) {
+	tests := []struct {
+		name string
+		ref NoteRef
+		want string
+	}{
+		{
+			name: "simple",
+			ref: NoteRef{Vault: "my-vault", Path: "foo.md"},
+			want: "urn:obsidian::my-vault:note:foo.md",
+		},
+		{
+			name: "nested path",
+			ref: NoteRef{Vault: "vault", Path: "Projects/obsidian-mcp/README.md"},
+			want: "urn:obsidian::vault:note:Projects/obsidian-mcp/README.md",
+		},
+		{
+			name: "heading anchor",
+			ref: NoteRef{Vault: "vault", Path: "foo.md", Anchor: Anchor{Headings: []string{"Design"}}},
+			want: "urn:obsidian::vault:note:foo.md#Design",
+		},
+		{
+			name: "nested heading",
+			ref: NoteRef{Vault: "vault", Path: "foo.md", Anchor: Anchor{Headings: []string{"Design", "Identity"}}},
+			want: "urn:obsidian::vault:note:foo.md#Design#Identity",
+		},
+		{
+			name: "block ref",
+			ref: NoteRef{Vault: "vault", Path: "foo.md", Anchor: Anchor{BlockID: "abc123"}},
+			want: "urn:obsidian::vault:note:foo.md#^abc123",
+		},
+		{
+			name: "space in path",
+			ref: NoteRef{Vault: "vault", Path: "Meeting Notes/Q3 Planning.md"},
+			want: "urn:obsidian::vault:note:Meeting%20Notes/Q3%20Planning.md",
+		},
+		{
+			name: "space in vault",
+			ref: NoteRef{Vault: "my vault", Path: "foo.md"},
+			want: "urn:obsidian::my%20vault:note:foo.md",
+		},
+		{
+			name: "colon in path",
+			ref: NoteRef{Vault: "vault", Path: "2026-06-29: Daily.md"},
+			want: "urn:obsidian::vault:note:2026-06-29%3A%20Daily.md",
+		},
+		{
+			name: "hash in heading",
+			ref: NoteRef{Vault: "vault", Path: "foo.md", Anchor: Anchor{Headings: []string{"C# Guide"}}},
+			want: "urn:obsidian::vault:note:foo.md#C%23%20Guide",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := tt.ref.URN()
+			if got != tt.want {
+				t.Errorf("URN() = %q, want %q", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestRoundTrip(t *testing.T) {
+	refs := []NoteRef{
+		{Vault: "vault", Path: "simple.md"},
+		{Vault: "vault", Path: "Projects/nested/deep.md"},
+		{Vault: "vault", Path: "foo.md", Anchor: Anchor{Headings: []string {"H1", "H2"}}},
+		{Vault: "vault", Path: "foo.md", Anchor: Anchor{BlockID: "xyz789"}},
+		{Vault: "My Vault", Path: "Meeting Notes/2026 Q3.md"},
+	}
+
+	for _, orig := range refs {
+		t.Run(orig.Path, func(t *testing.T) {
+			urn := orig.URN()
+			parsed, err := ParseRef(urn, "")
+			if err != nil {
+				t.Fatalf("ParseRef(%q) failed: %v", urn, err)
+			}
+			if parsed.Vault != orig.Vault || parsed.Path != orig.Path {
+				t.Errorf("round-trip mismatch: got {%q, %q}, want {%q, %q}", parsed.Vault, parsed.Path, orig.Vault, orig.Path)
+			}
+			if parsed.Anchor.BlockID != orig.Anchor.BlockID {
+				t.Errorf("BlockID mismatch: got %q, want %q", parsed.Anchor.BlockID, orig.Anchor.BlockID)
+			}
+			if len(parsed.Anchor.Headings) != len(orig.Anchor.Headings) {
+				t.Errorf("Headings mismatch: got %v, want %v", parsed.Anchor.Headings, orig.Anchor.Headings)
+			}
+		})
+	}
+}
