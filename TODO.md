@@ -7,8 +7,8 @@
 
 ## Tests
 
-- [ ] Tests for `vault.Registry`
-- [ ] Tests for `tools.ReadNote`
+- [x] Tests for `vault.Registry`
+- [x] Tests for `tools.ReadNote`
 - [ ] Integration tests with real vault filesystem
 
 ## Tools (priority order)
