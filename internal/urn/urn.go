@@ -1,16 +1,16 @@
 package urn
 
 import (
-	"fmt"
 	"errors"
-	"strings"
+	"fmt"
 	"net/url"
+	"strings"
 )
 
 // NoteRef is a parsed reference to a note; section anchor optional
 type NoteRef struct {
-	Vault string // logical vault name
-	Path string // vault-relative path
+	Vault  string // logical vault name
+	Path   string // vault-relative path
 	Anchor Anchor // optional section anchor
 }
 
@@ -31,7 +31,7 @@ func (r *NoteRef) URN() string {
 // Anchor identifies a location within a note. Headings and BlockID are mutually exclusive; one or the other must be used
 type Anchor struct {
 	Headings []string // e.g. ["Design", "Identity"] for #Design#Identity
-	BlockID string // e.g. "a1b2c3" for #^a1b2c3
+	BlockID  string   // e.g. "a1b2c3" for #^a1b2c3
 }
 
 func (a Anchor) encode() string {
@@ -90,10 +90,10 @@ func shouldEncode(r rune) bool {
 }
 
 var (
-	ErrInvalidURN = errors.New("invalid URN")
-	ErrEmptyVault = errors.New("empty vault name")
-	ErrEmptyPath = errors.New("empty path")
-	ErrUnknownType = errors.New("unknown resource type")
+	ErrInvalidURN   = errors.New("invalid URN")
+	ErrEmptyVault   = errors.New("empty vault name")
+	ErrEmptyPath    = errors.New("empty path")
+	ErrUnknownType  = errors.New("unknown resource type")
 	ErrUserReserved = errors.New("uesr field must be empty in v1")
 )
 
@@ -170,7 +170,6 @@ func parseBare(input, defaultVault string) (*NoteRef, error) {
 	}
 	return &NoteRef{Vault: defaultVault, Path: path}, nil
 }
-
 
 func decodePath(encoded string) (string, error) {
 	if encoded == "" {

@@ -1,110 +1,110 @@
 package urn
 
 import (
-	"fmt"
 	"errors"
+	"fmt"
 	"testing"
 )
 
 func TestParseRef(t *testing.T) {
 	tests := []struct {
-		name string
-		input string
+		name      string
+		input     string
 		wantVault string
-		wantPath string
-		wantAnc Anchor
-		wantErr error
+		wantPath  string
+		wantAnc   Anchor
+		wantErr   error
 	}{
 		{
-			name: "simple note",
-			input: "urn:obsidian::my-vault:note:Projects/foo.md",
+			name:      "simple note",
+			input:     "urn:obsidian::my-vault:note:Projects/foo.md",
 			wantVault: "my-vault",
-			wantPath: "Projects/foo.md",
+			wantPath:  "Projects/foo.md",
 		},
 		{
-			name: "case insensitive prefix",
-			input: "URN:OBSIDIAN::my-vault:note:foo.md",
+			name:      "case insensitive prefix",
+			input:     "URN:OBSIDIAN::my-vault:note:foo.md",
 			wantVault: "my-vault",
-			wantPath: "foo.md",
+			wantPath:  "foo.md",
 		},
 		{
-			name: "heading anchor",
-			input: "urn:obsidian::my-vault:note:note.md#Design",
+			name:      "heading anchor",
+			input:     "urn:obsidian::my-vault:note:note.md#Design",
 			wantVault: "my-vault",
-			wantPath: "note.md",
-			wantAnc: Anchor{Headings: []string{"Design"}},
+			wantPath:  "note.md",
+			wantAnc:   Anchor{Headings: []string{"Design"}},
 		},
 		{
-			name: "nested heading anchor",
-			input: "urn:obsidian::my-vault:note:note.md#Design#Identity",
+			name:      "nested heading anchor",
+			input:     "urn:obsidian::my-vault:note:note.md#Design#Identity",
 			wantVault: "my-vault",
-			wantPath: "note.md",
-			wantAnc: Anchor{Headings: []string{"Design", "Identity"}},
+			wantPath:  "note.md",
+			wantAnc:   Anchor{Headings: []string{"Design", "Identity"}},
 		},
 		{
-			name: "block ref anchor",
-			input: "urn:obsidian::my-vault:note:daily.md#^a1b2c3",
+			name:      "block ref anchor",
+			input:     "urn:obsidian::my-vault:note:daily.md#^a1b2c3",
 			wantVault: "my-vault",
-			wantPath: "daily.md",
-			wantAnc: Anchor{BlockID: "a1b2c3"},
+			wantPath:  "daily.md",
+			wantAnc:   Anchor{BlockID: "a1b2c3"},
 		},
 		{
-			name: "percent-encoded path",
-			input: "urn:obsidian::my-vault:note:Meeting%20Notes/Q3%20Planning.md",
+			name:      "percent-encoded path",
+			input:     "urn:obsidian::my-vault:note:Meeting%20Notes/Q3%20Planning.md",
 			wantVault: "my-vault",
-			wantPath: "Meeting Notes/Q3 Planning.md",
+			wantPath:  "Meeting Notes/Q3 Planning.md",
 		},
 		{
-			name: "percent-encoded vault",
-			input: "urn:obsidian::my%20vault:note:foo.md",
+			name:      "percent-encoded vault",
+			input:     "urn:obsidian::my%20vault:note:foo.md",
 			wantVault: "my vault",
-			wantPath: "foo.md",
+			wantPath:  "foo.md",
 		},
 		{
-			name: "percent-encoded heading",
-			input: "urn:obsidian::vault:note:foo.md#Section%20One",
+			name:      "percent-encoded heading",
+			input:     "urn:obsidian::vault:note:foo.md#Section%20One",
 			wantVault: "vault",
-			wantPath: "foo.md",
-			wantAnc: Anchor{Headings: []string{"Section One"}},
+			wantPath:  "foo.md",
+			wantAnc:   Anchor{Headings: []string{"Section One"}},
 		},
 		{
-			name: "missing fields",
-			input: "urn:obsidian::vault:note",
+			name:    "missing fields",
+			input:   "urn:obsidian::vault:note",
 			wantErr: ErrInvalidURN,
 		},
 		{
-			name: "non-empty user field",
-			input: "urn:obsidian:alice:vault:note:foo.md",
+			name:    "non-empty user field",
+			input:   "urn:obsidian:alice:vault:note:foo.md",
 			wantErr: ErrUserReserved,
 		},
 		{
-			name: "empty vault",
-			input: "urn:obsidian:::note:foo.md",
+			name:    "empty vault",
+			input:   "urn:obsidian:::note:foo.md",
 			wantErr: ErrEmptyVault,
 		},
 		{
-			name: "unknown type",
-			input: "urn:obsidian::vault:canvas:foo.canvas",
+			name:    "unknown type",
+			input:   "urn:obsidian::vault:canvas:foo.canvas",
 			wantErr: ErrUnknownType,
 		},
 		{
-			name: "empty path",
-			input: "urn:obsidian::vault:note:",
+			name:    "empty path",
+			input:   "urn:obsidian::vault:note:",
 			wantErr: ErrEmptyPath,
 		},
 		{
-			name: "empty path segment",
-			input: "urn:obsidian::vault:note:a//b.md",
+			name:    "empty path segment",
+			input:   "urn:obsidian::vault:note:a//b.md",
 			wantErr: ErrInvalidURN,
 		},
 		{
-			name: "empty block ID",
-			input: "urn:obsidian::vault:note:foo.md#^",
+			name:    "empty block ID",
+			input:   "urn:obsidian::vault:note:foo.md#^",
 			wantErr: ErrInvalidURN,
 		},
 		{
-			name: "not a URN",
-			input: "http://example.com",
+			name:    "not a URN",
+			input:   "http://example.com",
 			wantErr: ErrEmptyVault, // falls through to parseBare with no default value
 		},
 	}
@@ -152,53 +152,53 @@ func TestParseRef(t *testing.T) {
 
 func TestParseRef_BarePath(t *testing.T) {
 	tests := []struct {
-		name string
-		input string
+		name         string
+		input        string
 		defaultVault string
-		wantPath string
-		wantErr error
+		wantPath     string
+		wantErr      error
 	}{
 		{
-			name: "simple path",
-			input: "Projects/foo.md",
+			name:         "simple path",
+			input:        "Projects/foo.md",
 			defaultVault: "my-vault",
-			wantPath: "Projects/foo.md",
+			wantPath:     "Projects/foo.md",
 		},
 		{
-			name: "root file",
-			input: "readme.md",
+			name:         "root file",
+			input:        "readme.md",
 			defaultVault: "vault",
-			wantPath: "readme.md",
+			wantPath:     "readme.md",
 		},
 		{
-			name: "strips leading slash",
-			input: "/Projects/foo.md",
+			name:         "strips leading slash",
+			input:        "/Projects/foo.md",
 			defaultVault: "vault",
-			wantPath: "Projects/foo.md",
+			wantPath:     "Projects/foo.md",
 		},
 		{
-			name: "strips trailing slash",
-			input: "Projects/",
+			name:         "strips trailing slash",
+			input:        "Projects/",
 			defaultVault: "vault",
-			wantPath: "Projects",
+			wantPath:     "Projects",
 		},
 		{
-			name: "empty path",
-			input: "",
+			name:         "empty path",
+			input:        "",
 			defaultVault: "vault",
-			wantErr: ErrEmptyPath,
+			wantErr:      ErrEmptyPath,
 		},
 		{
-			name: "no default vault",
-			input: "foo.md",
+			name:         "no default vault",
+			input:        "foo.md",
 			defaultVault: "",
-			wantErr: ErrEmptyVault,
+			wantErr:      ErrEmptyVault,
 		},
 		{
-			name: "double slash",
-			input: "a//b.md",
+			name:         "double slash",
+			input:        "a//b.md",
 			defaultVault: "vault",
-			wantErr: ErrEmptyPath,
+			wantErr:      ErrEmptyPath,
 		},
 	}
 
@@ -234,52 +234,52 @@ func TestParseRef_BarePath(t *testing.T) {
 func TestNoteRef_URN(t *testing.T) {
 	tests := []struct {
 		name string
-		ref NoteRef
+		ref  NoteRef
 		want string
 	}{
 		{
 			name: "simple",
-			ref: NoteRef{Vault: "my-vault", Path: "foo.md"},
+			ref:  NoteRef{Vault: "my-vault", Path: "foo.md"},
 			want: "urn:obsidian::my-vault:note:foo.md",
 		},
 		{
 			name: "nested path",
-			ref: NoteRef{Vault: "vault", Path: "Projects/obsidian-mcp/README.md"},
+			ref:  NoteRef{Vault: "vault", Path: "Projects/obsidian-mcp/README.md"},
 			want: "urn:obsidian::vault:note:Projects/obsidian-mcp/README.md",
 		},
 		{
 			name: "heading anchor",
-			ref: NoteRef{Vault: "vault", Path: "foo.md", Anchor: Anchor{Headings: []string{"Design"}}},
+			ref:  NoteRef{Vault: "vault", Path: "foo.md", Anchor: Anchor{Headings: []string{"Design"}}},
 			want: "urn:obsidian::vault:note:foo.md#Design",
 		},
 		{
 			name: "nested heading",
-			ref: NoteRef{Vault: "vault", Path: "foo.md", Anchor: Anchor{Headings: []string{"Design", "Identity"}}},
+			ref:  NoteRef{Vault: "vault", Path: "foo.md", Anchor: Anchor{Headings: []string{"Design", "Identity"}}},
 			want: "urn:obsidian::vault:note:foo.md#Design#Identity",
 		},
 		{
 			name: "block ref",
-			ref: NoteRef{Vault: "vault", Path: "foo.md", Anchor: Anchor{BlockID: "abc123"}},
+			ref:  NoteRef{Vault: "vault", Path: "foo.md", Anchor: Anchor{BlockID: "abc123"}},
 			want: "urn:obsidian::vault:note:foo.md#^abc123",
 		},
 		{
 			name: "space in path",
-			ref: NoteRef{Vault: "vault", Path: "Meeting Notes/Q3 Planning.md"},
+			ref:  NoteRef{Vault: "vault", Path: "Meeting Notes/Q3 Planning.md"},
 			want: "urn:obsidian::vault:note:Meeting%20Notes/Q3%20Planning.md",
 		},
 		{
 			name: "space in vault",
-			ref: NoteRef{Vault: "my vault", Path: "foo.md"},
+			ref:  NoteRef{Vault: "my vault", Path: "foo.md"},
 			want: "urn:obsidian::my%20vault:note:foo.md",
 		},
 		{
 			name: "colon in path",
-			ref: NoteRef{Vault: "vault", Path: "2026-06-29: Daily.md"},
+			ref:  NoteRef{Vault: "vault", Path: "2026-06-29: Daily.md"},
 			want: "urn:obsidian::vault:note:2026-06-29%3A%20Daily.md",
 		},
 		{
 			name: "hash in heading",
-			ref: NoteRef{Vault: "vault", Path: "foo.md", Anchor: Anchor{Headings: []string{"C# Guide"}}},
+			ref:  NoteRef{Vault: "vault", Path: "foo.md", Anchor: Anchor{Headings: []string{"C# Guide"}}},
 			want: "urn:obsidian::vault:note:foo.md#C%23%20Guide",
 		},
 	}
@@ -298,7 +298,7 @@ func TestRoundTrip(t *testing.T) {
 	refs := []NoteRef{
 		{Vault: "vault", Path: "simple.md"},
 		{Vault: "vault", Path: "Projects/nested/deep.md"},
-		{Vault: "vault", Path: "foo.md", Anchor: Anchor{Headings: []string {"H1", "H2"}}},
+		{Vault: "vault", Path: "foo.md", Anchor: Anchor{Headings: []string{"H1", "H2"}}},
 		{Vault: "vault", Path: "foo.md", Anchor: Anchor{BlockID: "xyz789"}},
 		{Vault: "My Vault", Path: "Meeting Notes/2026 Q3.md"},
 	}
