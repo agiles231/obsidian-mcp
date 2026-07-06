@@ -52,11 +52,13 @@ func main() {
 	}
 
 	readNote := tools.NewReadNote(registry)
+	listNotes := tools.NewListNotes(registry)
 
 	srv := mcp.NewServer("obsidian-mcp", "0.1.0",
 		mcp.WithLogger(logger),
 	)
 	srv.Register(readNote)
+	srv.Register(listNotes)
 
 	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer cancel()

@@ -72,6 +72,61 @@ func Open(cfg Config) (*Vault, error) {
 
 func (v *Vault) Name() string { return v.name }
 
+func (v *Vault) ReadDir(ctx context.Context, rel string) ([]string, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
+
+	// Empty rel means root
+	dir := "."
+	if rel != "" {
+		clean, err := v.resolve(rel, accessRead)
+		if err != nil {
+			return nil, err
+		}
+		dir = clean
+	}
+
+	f, err := v.root.Open(dir)
+	if err != nil {
+		v.log.Warn("open dir failed", "path", dir, "err", err)
+		return nil, mapFSError(err)
+	}
+	defer f.Close()
+
+	entries, err := f.ReadDir(-1)
+	if err != nil {
+		v.log.Warn("readdir failed", "path", dir, "err", err)
+		return nil, mapFSError(err)
+	}
+	var paths []string
+	for _, e := range entries {
+		name := e.Name()
+		var entryPath string
+		if dir == "." {
+			entryPath = name
+		} else {
+			entryPath =dir + "/" + name
+		}
+
+		// Skip denied entries (opaque)
+		if v.deny.match(entryPath) {
+			continue
+		}
+
+		// Only include if allowed
+		if len(v.readAllow) > 0 && !v.readAllow.match(entryPath) {
+			continue
+		}
+
+		// Only include .md files (notes) , skip directories for now
+		if !e.IsDir() && strings.HasSuffix(name, ".md") {
+			paths = append(paths, entryPath)
+		}
+	}
+	return paths, nil
+}
+
 const maxNoteBytes = 10 << 20 // 10 MiB cap for single note
 func (v *Vault) ReadFile(ctx context.Context, rel string) (buf []byte, err error) {
 	if err := ctx.Err(); err != nil {
