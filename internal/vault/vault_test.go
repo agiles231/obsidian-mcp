@@ -7,9 +7,9 @@ import (
 
 func TestCleanVaultRel(t *testing.T) {
 	tests := []struct {
-		name string
-		rel string
-		want string
+		name    string
+		rel     string
+		want    string
 		wantErr error
 	}{
 		{"simple", "notes/foo.md", "notes/foo.md", nil},
@@ -33,7 +33,7 @@ func TestCleanVaultRel(t *testing.T) {
 				return
 			}
 			if got != tt.want {
-				t.Errorf("cleanVaultRel(%q) = %q, want %q", tt.rel, got , tt.want)
+				t.Errorf("cleanVaultRel(%q) = %q, want %q", tt.rel, got, tt.want)
 			}
 		})
 	}
@@ -41,9 +41,9 @@ func TestCleanVaultRel(t *testing.T) {
 
 func TestUnderRoot(t *testing.T) {
 	tests := []struct {
-		name string
-		root string
-		path string
+		name   string
+		root   string
+		path   string
 		wantOk bool
 	}{
 		{"inside", "/vault", "/vault/notes/food.md", true},

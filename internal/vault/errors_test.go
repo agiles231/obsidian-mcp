@@ -8,7 +8,7 @@ import (
 
 func TestAgentMessage(t *testing.T) {
 	tests := []struct {
-		err error
+		err  error
 		want string
 	}{
 		{errInvalid, "invalid path or identifier"},
@@ -28,9 +28,9 @@ func TestAgentMessage(t *testing.T) {
 }
 
 func TestMapFSError(t *testing.T) {
-	tests := []struct{
+	tests := []struct {
 		name string
-		err error
+		err  error
 		want error
 	}{
 		{"nil", nil, nil},
@@ -38,7 +38,7 @@ func TestMapFSError(t *testing.T) {
 		{"errOutsideVault passthrough", errOutsideVault, errOutsideVault},
 		{"errNotPermitted passthrough", errNotPermitted, errNotPermitted},
 		{"errNotFound passthrough", errNotFound, errNotFound},
-		{"errTooLarge  passthrough", errTooLarge , errTooLarge},
+		{"errTooLarge  passthrough", errTooLarge, errTooLarge},
 		{"fs.ErrNotExist -> errNotFound", fs.ErrNotExist, errNotFound},
 		{"fs.ErrPermission -> errNotFound", fs.ErrPermission, errNotFound},
 		{"unknown error -> errOutsideVault", errors.New("unknown"), errOutsideVault},
