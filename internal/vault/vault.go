@@ -32,6 +32,25 @@ type Vault struct {
 	log        *slog.Logger
 }
 
+type ObjectEntry struct {
+	Type string // urn.TypeNote, urn.TypeFolder, etc.
+	Path string // vault-rel path
+	Name string // basename
+}
+type ListOptions struct {
+	Types     map[string]bool // filter by type; nil => all
+	Recursive bool
+}
+
+type accessKind int
+
+const (
+	accessRead accessKind = iota
+	accessWrite
+)
+
+const maxNoteBytes = 10 << 20 // 10 MiB cap for single note
+
 func Open(cfg Config) (*Vault, error) {
 	if cfg.Name == "" {
 		return nil, errors.New("vault: empty name")
@@ -72,16 +91,6 @@ func Open(cfg Config) (*Vault, error) {
 
 func (v *Vault) Name() string { return v.name }
 
-type ObjectEntry struct {
-	Type string // urn.TypeNote, urn.TypeFolder, etc.
-	Path string // vault-rel path
-	Name string // basename
-}
-type ListOptions struct {
-	Types     map[string]bool // filter by type; nil => all
-	Recursive bool
-}
-
 func (v *Vault) ListObjects(ctx context.Context, dir string, opts ListOptions) ([]ObjectEntry, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, err
@@ -103,6 +112,51 @@ func (v *Vault) ListObjects(ctx context.Context, dir string, opts ListOptions) (
 	}
 	return results, nil
 }
+
+func (v *Vault) ReadFile(ctx context.Context, rel string) (buf []byte, err error) {
+	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
+	clean, err := v.resolve(rel, accessRead)
+	if err != nil {
+		return nil, err
+	}
+	f, err := v.root.Open(clean)
+	if err != nil {
+		v.log.Warn("open failed", "path", clean, "err", err)
+		return nil, mapFSError(err)
+	}
+	defer func() {
+		closeErr := f.Close()
+		if closeErr != nil {
+			buf = nil
+			err = mapFSError(closeErr)
+		}
+	}()
+	data, err := readCapped(f, maxNoteBytes) // prevent local DoS from giant file
+	if err != nil {
+		v.log.Warn("read failed", "path", clean, "err", err)
+		return nil, mapFSError(err)
+	}
+	return data, nil
+}
+
+func (v *Vault) Stat(ctx context.Context, rel string) (fs.FileInfo, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
+	clean, err := v.resolve(rel, accessRead)
+	if err != nil {
+		return nil, err
+	}
+	fi, err := v.root.Stat(clean) // os.Root.Stat follows symlinks within root
+	if err != nil {
+		v.log.Warn("stat failed", "path", clean, "err", err)
+		return nil, mapFSError(err)
+	}
+	return fi, nil
+}
+
 
 func (v *Vault) listDir(ctx context.Context, dir string, opts ListOptions, results *[]ObjectEntry) error {
 	if err := ctx.Err(); err != nil {
@@ -171,126 +225,6 @@ func (v *Vault) listDir(ctx context.Context, dir string, opts ListOptions, resul
 	return nil
 }
 
-func classifyEntry(e os.DirEntry, name string) string {
-	switch {
-	case e.IsDir():
-		return "folder"
-	case strings.HasSuffix(name, ".md"):
-		return "note"
-	case strings.HasSuffix(name, ".canvas"):
-		return "canvas"
-	default:
-		return "attachment"
-	}
-}
-
-func (v *Vault) ReadDir(ctx context.Context, rel string) ([]string, error) {
-	if err := ctx.Err(); err != nil {
-		return nil, err
-	}
-
-	// Empty rel means root
-	dir := "."
-	if rel != "" {
-		clean, err := v.resolve(rel, accessRead)
-		if err != nil {
-			return nil, err
-		}
-		dir = clean
-	}
-
-	f, err := v.root.Open(dir)
-	if err != nil {
-		v.log.Warn("open dir failed", "path", dir, "err", err)
-		return nil, mapFSError(err)
-	}
-	defer f.Close()
-
-	entries, err := f.ReadDir(-1)
-	if err != nil {
-		v.log.Warn("readdir failed", "path", dir, "err", err)
-		return nil, mapFSError(err)
-	}
-	var paths []string
-	for _, e := range entries {
-		name := e.Name()
-		var entryPath string
-		if dir == "." {
-			entryPath = name
-		} else {
-			entryPath = dir + "/" + name
-		}
-
-		// Skip denied entries (opaque)
-		if v.deny.match(entryPath) {
-			continue
-		}
-
-		// Only include if allowed
-		if len(v.readAllow) > 0 && !v.readAllow.match(entryPath) {
-			continue
-		}
-
-		// Only include .md files (notes) , skip directories for now
-		if !e.IsDir() && strings.HasSuffix(name, ".md") {
-			paths = append(paths, entryPath)
-		}
-	}
-	return paths, nil
-}
-
-const maxNoteBytes = 10 << 20 // 10 MiB cap for single note
-func (v *Vault) ReadFile(ctx context.Context, rel string) (buf []byte, err error) {
-	if err := ctx.Err(); err != nil {
-		return nil, err
-	}
-	clean, err := v.resolve(rel, accessRead)
-	if err != nil {
-		return nil, err
-	}
-	f, err := v.root.Open(clean)
-	if err != nil {
-		v.log.Warn("open failed", "path", clean, "err", err)
-		return nil, mapFSError(err)
-	}
-	defer func() {
-		closeErr := f.Close()
-		if closeErr != nil {
-			buf = nil
-			err = mapFSError(closeErr)
-		}
-	}()
-	data, err := readCapped(f, maxNoteBytes) // prevent local DoS from giant file
-	if err != nil {
-		v.log.Warn("read failed", "path", clean, "err", err)
-		return nil, mapFSError(err)
-	}
-	return data, nil
-}
-
-func (v *Vault) Stat(ctx context.Context, rel string) (fs.FileInfo, error) {
-	if err := ctx.Err(); err != nil {
-		return nil, err
-	}
-	clean, err := v.resolve(rel, accessRead)
-	if err != nil {
-		return nil, err
-	}
-	fi, err := v.root.Stat(clean) // os.Root.Stat follows symlinks within root
-	if err != nil {
-		v.log.Warn("stat failed", "path", clean, "err", err)
-		return nil, mapFSError(err)
-	}
-	return fi, nil
-}
-
-type accessKind int
-
-const (
-	accessRead accessKind = iota
-	accessWrite
-)
-
 func (v *Vault) resolve(rel string, op accessKind) (string, error) {
 	// gate 1: invalid / absolute / escape
 	clean, err := cleanVaultRel(rel)
@@ -335,6 +269,19 @@ func (v *Vault) allowed(clean string, op accessKind) bool {
 		return v.writeAllow.match(clean) // empty => none
 	}
 	return false
+}
+
+func classifyEntry(e os.DirEntry, name string) string {
+	switch {
+	case e.IsDir():
+		return "folder"
+	case strings.HasSuffix(name, ".md"):
+		return "note"
+	case strings.HasSuffix(name, ".canvas"):
+		return "canvas"
+	default:
+		return "attachment"
+	}
 }
 
 // readCapped refuses non-regular files and bounds the read size
