@@ -72,6 +72,118 @@ func Open(cfg Config) (*Vault, error) {
 
 func (v *Vault) Name() string { return v.name }
 
+type ObjectEntry struct {
+	Type string // urn.TypeNote, urn.TypeFolder, etc.
+	Path string // vault-rel path
+	Name string // basename
+}
+type ListOptions struct {
+	Types     map[string]bool // filter by type; nil => all
+	Recursive bool
+}
+
+func (v *Vault) ListObjects(ctx context.Context, dir string, opts ListOptions) ([]ObjectEntry, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
+
+	startDir := "."
+	if dir != "" {
+		clean, err := v.resolve(dir, accessRead)
+		if err != nil {
+			return nil, err
+		}
+		startDir = clean
+	}
+
+	var results []ObjectEntry
+	err := v.listDir(ctx, startDir, opts, &results)
+	if err != nil {
+		return nil, err
+	}
+	return results, nil
+}
+
+func (v *Vault) listDir(ctx context.Context, dir string, opts ListOptions, results *[]ObjectEntry) error {
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+
+	f, err := v.root.Open(dir)
+	if err != nil {
+		v.log.Warn("open dir failed", "path", dir, "err", err)
+		return mapFSError(err)
+	}
+	defer f.Close()
+
+	entries, err := f.ReadDir(-1)
+	if err != nil {
+		v.log.Warn("readir failed", "path", dir, "err", err)
+		return mapFSError(err)
+	}
+
+	for _, e := range entries {
+		name := e.Name()
+		var entryPath string
+		if dir == "." {
+			entryPath = name
+		} else {
+			entryPath = dir + "/" + name
+		}
+
+		// Skip denied entries
+		if v.deny.match(entryPath) {
+			continue
+		}
+
+		// Check allow-list
+		if len(v.readAllow) > 0 && !v.readAllow.match(entryPath) {
+			continue
+		}
+
+		objType := classifyEntry(e, name)
+
+		// Filter by type if specified
+		if opts.Types != nil && !opts.Types[objType] {
+			// Not including folders, but we are recursing...so recurse
+			// to potentially find other matches
+			if e.IsDir() && opts.Recursive {
+				if err := v.listDir(ctx, entryPath, opts, results); err != nil {
+					return err
+				}
+			}
+			continue
+		}
+
+		*results = append(*results, ObjectEntry{
+			Type: objType,
+			Path: entryPath,
+			Name: name,
+		})
+
+		// Recurse into folders
+		if e.IsDir() && opts.Recursive {
+			if err := v.listDir(ctx, entryPath, opts, results); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+func classifyEntry(e os.DirEntry, name string) string {
+	switch {
+	case e.IsDir():
+		return "folder"
+	case strings.HasSuffix(name, ".md"):
+		return "note"
+	case strings.HasSuffix(name, ".canvas"):
+		return "canvas"
+	default:
+		return "attachment"
+	}
+}
+
 func (v *Vault) ReadDir(ctx context.Context, rel string) ([]string, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, err
@@ -106,7 +218,7 @@ func (v *Vault) ReadDir(ctx context.Context, rel string) ([]string, error) {
 		if dir == "." {
 			entryPath = name
 		} else {
-			entryPath =dir + "/" + name
+			entryPath = dir + "/" + name
 		}
 
 		// Skip denied entries (opaque)

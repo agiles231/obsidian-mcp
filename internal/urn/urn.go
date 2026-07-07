@@ -8,16 +8,16 @@ import (
 )
 
 const (
-	TypeNote = "note"
-	TypeFolder = "folder"
+	TypeNote       = "note"
+	TypeFolder     = "folder"
 	TypeAttachment = "attachment"
-	TypeCanvas = "canvas"
+	TypeCanvas     = "canvas"
 )
 
 // Ref is a parsed reference to a note; section anchor optional
 type Ref struct {
 	Vault  string // logical vault name
-	Type string // "note", "folder", "attachment", "canvas"
+	Type   string // "note", "folder", "attachment", "canvas"
 	Path   string // vault-relative path
 	Anchor Anchor // optional section anchor
 }
@@ -108,10 +108,10 @@ var (
 )
 
 var knownTypes = map[string]bool{
-	TypeNote: true,
-	TypeFolder: true,
+	TypeNote:       true,
+	TypeFolder:     true,
 	TypeAttachment: true,
-	TypeCanvas: true,
+	TypeCanvas:     true,
 }
 
 const urnPrefix = "urn:obsidian:"
