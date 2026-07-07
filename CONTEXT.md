@@ -82,9 +82,12 @@ See [`docs/adr/`](docs/adr/) for full details:
 | [0005](docs/adr/0005-refusal-error-model.md) | Split refusal taxonomy; deny ⇒ opaque not-found |
 | [0006](docs/adr/0006-threat-model-security-boundaries.md) | Threat model: defense-in-depth, not sandbox |
 | [0007](docs/adr/0007-list-objects-unified-listing.md) | Unified `list_objects` tool for vault discovery |
+| [0008](docs/adr/0008-object-type-taxonomy.md) | Object type taxonomy (note, folder, canvas, attachment) |
+| [0009](docs/adr/0009-write-tool-strategy.md) | Write tool strategy: general write_file, no diffs |
 
 **URN format:** `urn:obsidian:<user>:<vault>:<type>:<identifier>#<anchor>`
-- In v1: `user` empty, `type` is `note`, `identifier` is vault-relative path
+- In v1: `user` empty, `type` is `note`/`folder`/`canvas`/`attachment` (ADR-0008)
+- `identifier` is vault-relative path
 - See [`docs/urn-spec.md`](docs/urn-spec.md) for full spec
 
 ## 5. Current status
@@ -93,18 +96,16 @@ See [`docs/adr/`](docs/adr/) for full details:
 
 - **`internal/vault/`** — Vault abstraction with allow/deny glob matching,
   `os.Root` containment, symlink re-validation
-- **`internal/urn/`** — URN parser/resolver (liberal in, canonical out)
-- **`internal/tools/read_note.go`** — Read note content
-- **`internal/tools/list_notes.go`** — List notes (to be replaced by `list_objects`)
+- **`internal/urn/`** — URN parser/resolver (liberal in, canonical out); generic
+  `Ref` type supports all object types (note, folder, canvas, attachment)
+- **`internal/tools/read_file.go`** — Read file content
+- **`internal/tools/list_objects.go`** — List vault objects with type filters
+- **`internal/tools/write_file.go`** — Create/overwrite files
+- **`internal/tools/append_note.go`** — Append to markdown notes
 - **`cmd/obsidian-mcp/`** — CLI entry point with flag-based config
 - **Vault registry** — supports multiple vaults (single-vault for now)
 
-### In progress
-
-- Use case documentation and workflow design
-- Additional tools (see §6)
-
-### TODOs
+### Next steps
 
 See [`TODO.md`](TODO.md) for the full task list.
 
@@ -112,14 +113,21 @@ See [`TODO.md`](TODO.md) for the full task list.
 
 See [`docs/use-cases.md`](docs/use-cases.md) for detailed workflows.
 
-**Next tools (priority order):**
+**Implemented tools:**
+
+| Tool | Purpose |
+|------|---------|
+| `read_file` | Read any file content |
+| `list_objects` | Unified vault listing with type filters (ADR-0007) |
+| `write_file` | Create/overwrite any file (ADR-0009) |
+| `append_note` | Append to markdown notes |
+
+**Next tools:**
 
 | Tool | Purpose | Enables |
 |------|---------|---------|
-| `list_objects` | Unified vault listing with type filters (ADR-0007) | Discovery, browsing |
-| `write_note` | Create/overwrite a note | Save session workflow |
-| `append_note` | Append to a note | Daily notes, incremental capture |
 | `search_notes` | Full-text search | Knowledge queries |
+| `daily_note` | Read/append to today's daily note | Date-aware workflows |
 
 ## 7. Working style
 

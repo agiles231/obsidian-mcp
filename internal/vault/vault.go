@@ -10,6 +10,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"slices"
 	"strings"
 )
 
@@ -105,8 +106,7 @@ func (v *Vault) ListObjects(ctx context.Context, dir string, opts ListOptions) (
 		startDir = clean
 	}
 
-	var results []ObjectEntry
-	err := v.listDir(ctx, startDir, opts, &results)
+	results, err := v.listDir(ctx, startDir, opts)
 	if err != nil {
 		return nil, err
 	}
@@ -175,6 +175,41 @@ func (v *Vault) WriteFile(ctx context.Context, rel string, data []byte) error {
 	return nil
 }
 
+func (v *Vault) AppendFile(ctx context.Context, rel string, data []byte) error {
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+	clean, err := v.resolve(rel, accessWrite)
+	if err != nil {
+		return err
+	}
+
+	// Ensure parent directory exists
+	dir := path.Dir(clean)
+	if dir != "." {
+		if err := v.mkdirAll(dir); err != nil {
+			return err
+		}
+	}
+
+	f, err := v.root.OpenFile(clean, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		v.log.Warn("open for append failed", "path", clean, "err", err)
+		return mapFSError(err)
+	}
+
+	_, writeErr := f.Write(data)
+	closeErr := f.Close()
+	if writeErr != nil {
+		v.log.Warn("append failed", "path", clean, "err", writeErr)
+		return mapFSError(writeErr)
+	}
+	if closeErr != nil {
+		return mapFSError(closeErr)
+	}
+	return nil
+}
+
 func (v *Vault) Stat(ctx context.Context, rel string) (fs.FileInfo, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, err
@@ -191,24 +226,25 @@ func (v *Vault) Stat(ctx context.Context, rel string) (fs.FileInfo, error) {
 	return fi, nil
 }
 
-func (v *Vault) listDir(ctx context.Context, dir string, opts ListOptions, results *[]ObjectEntry) error {
+func (v *Vault) listDir(ctx context.Context, dir string, opts ListOptions) ([]ObjectEntry, error) {
 	if err := ctx.Err(); err != nil {
-		return err
+		return nil, err
 	}
 
 	f, err := v.root.Open(dir)
 	if err != nil {
 		v.log.Warn("open dir failed", "path", dir, "err", err)
-		return mapFSError(err)
+		return nil, mapFSError(err)
 	}
 	defer f.Close()
 
 	entries, err := f.ReadDir(-1)
 	if err != nil {
 		v.log.Warn("readir failed", "path", dir, "err", err)
-		return mapFSError(err)
+		return nil, mapFSError(err)
 	}
 
+	var results []ObjectEntry
 	for _, e := range entries {
 		name := e.Name()
 		var entryPath string
@@ -235,14 +271,16 @@ func (v *Vault) listDir(ctx context.Context, dir string, opts ListOptions, resul
 			// Not including folders, but we are recursing...so recurse
 			// to potentially find other matches
 			if e.IsDir() && opts.Recursive {
-				if err := v.listDir(ctx, entryPath, opts, results); err != nil {
-					return err
+				sub, err := v.listDir(ctx, entryPath, opts)
+				if err != nil {
+					return nil, err
 				}
+				results = append(results, sub...)
 			}
 			continue
 		}
 
-		*results = append(*results, ObjectEntry{
+		results = append(results, ObjectEntry{
 			Type: objType,
 			Path: entryPath,
 			Name: name,
@@ -250,12 +288,14 @@ func (v *Vault) listDir(ctx context.Context, dir string, opts ListOptions, resul
 
 		// Recurse into folders
 		if e.IsDir() && opts.Recursive {
-			if err := v.listDir(ctx, entryPath, opts, results); err != nil {
-				return err
+			sub, err := v.listDir(ctx, entryPath, opts)
+			if err != nil {
+				return nil, err
 			}
+			results = append(results, sub...)
 		}
 	}
-	return nil
+	return results, nil
 }
 
 func (v *Vault) resolve(rel string, op accessKind) (string, error) {
@@ -295,20 +335,24 @@ func (v *Vault) resolve(rel string, op accessKind) (string, error) {
 }
 
 func (v *Vault) mkdirAll(rel string) error {
-	// Split path and create each segment
+	// Build list of directory paths from root to rel
 	parts := strings.Split(rel, "/")
-	current := ""
-	for _, p := range parts {
-		if current == "" {
-			current = p
+	paths := make([]string, len(parts))
+	for i, p := range parts {
+		if i == 0 {
+			paths[i] = p
 		} else {
-			current = current + "/" + p
+			paths[i] = paths[i-1] + "/" + p
 		}
-		// Check deny list for each directory level
-		if v.deny.match(current) {
-			return errNotPermitted
-		}
-		if err := v.root.Mkdir(current, 0755); err != nil && !errors.Is(err, fs.ErrExist) {
+	}
+	// Validate all paths against deny list before mutating state
+	if slices.ContainsFunc(paths, v.deny.match) {
+		return errNotPermitted
+	}
+
+	// Validated; Now create directories
+	for _, p := range paths {
+		if err := v.root.Mkdir(p, 0755); err != nil && !errors.Is(err, fs.ErrExist) {
 			return mapFSError(err)
 		}
 	}

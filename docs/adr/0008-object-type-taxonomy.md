@@ -34,7 +34,7 @@ existing notes — it queries frontmatter and tags to produce a table display. T
 underlying data lives in the notes themselves. An LLM with access to:
 
 1. `list_objects` (recursive) — discover all notes
-2. `read_note` — retrieve content and frontmatter
+2. `read_file` — retrieve content and frontmatter
 
 ...can replicate Base functionality by aggregating in-context. The `.base` file
 contains query configuration, not data — it provides no value beyond what

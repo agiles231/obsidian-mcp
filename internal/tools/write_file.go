@@ -9,31 +9,31 @@ import (
 	"github.com/agiles231/obsidian-mcp/internal/vault"
 )
 
-type WriteNote struct {
+type WriteFile struct {
 	registry *vault.Registry
 }
 
-func NewWriteNote(r *vault.Registry) *WriteNote {
-	return &WriteNote{registry: r}
+func NewWriteFile(r *vault.Registry) *WriteFile {
+	return &WriteFile{registry: r}
 }
 
-func (t *WriteNote) Name() string { return "write_note" }
+func (t *WriteFile) Name() string { return "write_file" }
 
-func (t *WriteNote) Description() string {
-	return "Create or overwrite a note in the vault. Parent directories are created if needed"
+func (t *WriteFile) Description() string {
+	return "Create or overwrite a file in the vault. Parent directories are created if needed"
 }
 
-func (t *WriteNote) Schema() mcp.InputSchema {
+func (t *WriteFile) Schema() mcp.InputSchema {
 	return mcp.InputSchema{
 		Type: "object",
 		Properties: map[string]mcp.Property{
 			"ref": {
 				Type:        "string",
-				Description: "Note reference: a URN (urn:obsidian::vault:note:path/to/note.md) or base path",
+				Description: "file reference: a URN (urn:obsidian::vault:note:path/to/note.md) or base path",
 			},
 			"content": {
 				Type:        "string",
-				Description: "The full content to write to the note",
+				Description: "The full content to write to the file",
 			},
 		},
 		Required: []string{"ref", "content"},
@@ -45,7 +45,7 @@ type writeNoteArgs struct {
 	Content string `json:"content"`
 }
 
-func (t *WriteNote) Execute(ctx context.Context, args json.RawMessage) ([]mcp.Content, error) {
+func (t *WriteFile) Execute(ctx context.Context, args json.RawMessage) ([]mcp.Content, error) {
 	var a writeNoteArgs
 	if err := json.Unmarshal(args, &a); err != nil {
 		return nil, err
@@ -65,4 +65,13 @@ func (t *WriteNote) Execute(ctx context.Context, args json.RawMessage) ([]mcp.Co
 		return nil, err
 	}
 	return []mcp.Content{mcp.Text("write " + ref.URN())}, nil
+}
+
+func (t *WriteFile) Annotations() mcp.Annotations {
+	return mcp.Annotations{
+		Title:           "Write Note",
+		ReadOnlyHint:    mcp.HintFalse(),
+		DestructiveHint: mcp.HintTrue(),
+		OpenWorldHint:   mcp.HintFalse(),
+	}
 }

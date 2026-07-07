@@ -51,15 +51,17 @@ func main() {
 		logger.Error("failed to registry vault", "err", err)
 	}
 
-	readNote := tools.NewReadNote(registry)
-	writeNote := tools.NewWriteNote(registry)
+	readFile := tools.NewReadFile(registry)
+	writeFile := tools.NewWriteFile(registry)
+	appendNote := tools.NewAppendNote(registry)
 	listObjects := tools.NewListObjects(registry)
 
 	srv := mcp.NewServer("obsidian-mcp", "0.1.0",
 		mcp.WithLogger(logger),
 	)
-	srv.Register(readNote)
-	srv.Register(writeNote)
+	srv.Register(readFile)
+	srv.Register(writeFile)
+	srv.Register(appendNote)
 	srv.Register(listObjects)
 
 	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)

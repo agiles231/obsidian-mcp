@@ -14,16 +14,16 @@
 
 ## Tools (priority order)
 
-- [x] `read_note` — read note content
+- [x] `read_file` — read note content
 - [x] `list_objects` — unified listing with type filters, recursive option (ADR-0007, ADR-0008)
-- [ ] `write_note` — create/overwrite a note (ADR-0009)
+- [ ] `write_file` — create/overwrite any file: notes, canvas, etc. (ADR-0009)
 - [ ] `append_note` — append content to a note (ADR-0009)
 - [ ] `search_notes` — full-text search across vault
+- [ ] `daily_note` — read/append to today's daily note (date-aware path resolution)
 
 ## Features
 
 - [ ] Indirect config file support (`~/.config/obsidian-mcp/config.toml`)
-- [ ] Date-aware path resolution for daily notes
 - [ ] Error wrapping with `vault.AgentMessage()` for user-friendly errors
 
 ## Future / Deferred (ADR-0009)

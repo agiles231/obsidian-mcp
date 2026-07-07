@@ -9,39 +9,39 @@ import (
 	"github.com/agiles231/obsidian-mcp/internal/vault"
 )
 
-type ReadNote struct {
+type ReadFile struct {
 	registry *vault.Registry
 }
 
-func NewReadNote(r *vault.Registry) *ReadNote {
-	return &ReadNote{registry: r}
+func NewReadFile(r *vault.Registry) *ReadFile {
+	return &ReadFile{registry: r}
 }
 
-func (t *ReadNote) Name() string { return "read_note" }
+func (t *ReadFile) Name() string { return "read_file" }
 
-func (t *ReadNote) Description() string {
-	return "Read the contents of a note from the vault. Accepts a URN (urn:obsidian::vault:note:path)"
+func (t *ReadFile) Description() string {
+	return "Read the contents of a file from the vault. Accepts a URN (urn:obsidian::vault:note:path)"
 }
 
-func (t *ReadNote) Schema() mcp.InputSchema {
+func (t *ReadFile) Schema() mcp.InputSchema {
 	return mcp.InputSchema{
 		Type: "object",
 		Properties: map[string]mcp.Property{
 			"ref": {
 				Type:        "string",
-				Description: "Note references: a URN (urn:obsidian::vault:note:path/to/note.md)",
+				Description: "File references: a URN (urn:obsidian::vault:note:path/to/note.md)",
 			},
 		},
 		Required: []string{"ref"},
 	}
 }
 
-type readNoteArgs struct {
+type readFileArgs struct {
 	Ref string `json:"ref"`
 }
 
-func (t *ReadNote) Execute(ctx context.Context, args json.RawMessage) ([]mcp.Content, error) {
-	var a readNoteArgs
+func (t *ReadFile) Execute(ctx context.Context, args json.RawMessage) ([]mcp.Content, error) {
+	var a readFileArgs
 	if err := json.Unmarshal(args, &a); err != nil {
 		return nil, err
 	}
@@ -68,9 +68,9 @@ func (t *ReadNote) Execute(ctx context.Context, args json.RawMessage) ([]mcp.Con
 	return []mcp.Content{mcp.Text(string(data))}, nil
 }
 
-func (t *ReadNote) Annotations() mcp.Annotations {
+func (t *ReadFile) Annotations() mcp.Annotations {
 	return mcp.Annotations{
-		Title:         "Read Note",
+		Title:         "Read File",
 		ReadOnlyHint:  mcp.HintTrue(),
 		OpenWorldHint: mcp.HintFalse(),
 	}

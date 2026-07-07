@@ -38,11 +38,11 @@ func setupTestVault(t *testing.T) (*vault.Registry, string) {
 	return r, root
 }
 
-func TestReadNote_BarePathSuccess(t *testing.T) {
+func TestReadFile_BarePathSuccess(t *testing.T) {
 	r, _ := setupTestVault(t)
-	tool := NewReadNote(r)
+	tool := NewReadFile(r)
 
-	args, _ := json.Marshal(readNoteArgs{Ref: "readme.md"})
+	args, _ := json.Marshal(readFileArgs{Ref: "readme.md"})
 	content, err := tool.Execute(context.Background(), args)
 	if err != nil {
 		t.Fatalf("Execute: %v", err)
@@ -55,11 +55,11 @@ func TestReadNote_BarePathSuccess(t *testing.T) {
 	}
 }
 
-func TestReadNote_NestedPath(t *testing.T) {
+func TestReadFile_NestedPath(t *testing.T) {
 	r, _ := setupTestVault(t)
-	tool := NewReadNote(r)
+	tool := NewReadFile(r)
 
-	args, _ := json.Marshal(readNoteArgs{Ref: "notes/test.md"})
+	args, _ := json.Marshal(readFileArgs{Ref: "notes/test.md"})
 	content, err := tool.Execute(context.Background(), args)
 	if err != nil {
 		t.Fatalf("Execute: %v", err)
@@ -69,11 +69,11 @@ func TestReadNote_NestedPath(t *testing.T) {
 	}
 }
 
-func TestReadNote_URNSuccess(t *testing.T) {
+func TestReadFile_URNSuccess(t *testing.T) {
 	r, _ := setupTestVault(t)
-	tool := NewReadNote(r)
+	tool := NewReadFile(r)
 
-	args, _ := json.Marshal(readNoteArgs{Ref: "urn:obsidian::test:note:readme.md"})
+	args, _ := json.Marshal(readFileArgs{Ref: "urn:obsidian::test:note:readme.md"})
 	content, err := tool.Execute(context.Background(), args)
 	if err != nil {
 		t.Fatalf("Execute: %v", err)
@@ -83,45 +83,45 @@ func TestReadNote_URNSuccess(t *testing.T) {
 	}
 }
 
-func TestReadNote_NotFound(t *testing.T) {
+func TestReadFile_NotFound(t *testing.T) {
 	r, _ := setupTestVault(t)
-	tool := NewReadNote(r)
+	tool := NewReadFile(r)
 
-	args, _ := json.Marshal(readNoteArgs{Ref: "nonexistent.md"})
+	args, _ := json.Marshal(readFileArgs{Ref: "nonexistent.md"})
 	_, err := tool.Execute(context.Background(), args)
 	if err == nil {
 		t.Fatal("expected error for nonexistent file")
 	}
 }
 
-func TestReadNote_VaultNotFound(t *testing.T) {
+func TestReadFile_VaultNotFound(t *testing.T) {
 	r, _ := setupTestVault(t)
-	tool := NewReadNote(r)
+	tool := NewReadFile(r)
 
-	args, _ := json.Marshal(readNoteArgs{Ref: "urn:obsidian::wrong-vault:note:readme.md"})
+	args, _ := json.Marshal(readFileArgs{Ref: "urn:obsidian::wrong-vault:note:readme.md"})
 	_, err := tool.Execute(context.Background(), args)
 	if !errors.Is(err, vault.ErrVaultNotFound) {
 		t.Errorf("error = %v, want ErrVaultNotFound", err)
 	}
 }
 
-func TestReadNote_InvalidJSON(t *testing.T) {
+func TestReadFile_InvalidJSON(t *testing.T) {
 	r, _ := setupTestVault(t)
-	tool := NewReadNote(r)
+	tool := NewReadFile(r)
 
 	_, err := tool.Execute(context.Background(), []byte("not json"))
 	if err == nil {
 		t.Fatal("expected error for invalid JSON")
 	}
 }
-func TestReadNote_ContextCancelled(t *testing.T) {
+func TestReadFile_ContextCancelled(t *testing.T) {
 	r, _ := setupTestVault(t)
-	tool := NewReadNote(r)
+	tool := NewReadFile(r)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel()
 
-	args, _ := json.Marshal(readNoteArgs{Ref: "readme.md"})
+	args, _ := json.Marshal(readFileArgs{Ref: "readme.md"})
 	_, err := tool.Execute(ctx, args)
 	if !errors.Is(err, context.Canceled) {
 		t.Errorf("error = %v, want context.Canceled", err)
