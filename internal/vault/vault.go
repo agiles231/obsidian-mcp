@@ -141,6 +141,40 @@ func (v *Vault) ReadFile(ctx context.Context, rel string) (buf []byte, err error
 	return data, nil
 }
 
+func (v *Vault) WriteFile(ctx context.Context, rel string, data []byte) error {
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+	clean, err := v.resolve(rel, accessWrite)
+	if err != nil {
+		return err
+	}
+
+	// Ensure parent direcotry exists
+	dir := path.Dir(clean)
+	if dir != "." {
+		if err := v.mkdirAll(dir); err != nil {
+			return err
+		}
+	}
+
+	f, err := v.root.Create(clean)
+	if err != nil {
+		v.log.Warn("create failed", "path", clean, "err", err)
+		return mapFSError(err)
+	}
+	_, writeErr := f.Write(data)
+	closeErr := f.Close()
+	if writeErr != nil {
+		v.log.Warn("write failed", "path", clean, "err", writeErr)
+		return mapFSError(writeErr)
+	}
+	if closeErr != nil {
+		return mapFSError(closeErr)
+	}
+	return nil
+}
+
 func (v *Vault) Stat(ctx context.Context, rel string) (fs.FileInfo, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, err
@@ -156,7 +190,6 @@ func (v *Vault) Stat(ctx context.Context, rel string) (fs.FileInfo, error) {
 	}
 	return fi, nil
 }
-
 
 func (v *Vault) listDir(ctx context.Context, dir string, opts ListOptions, results *[]ObjectEntry) error {
 	if err := ctx.Err(); err != nil {
@@ -259,6 +292,27 @@ func (v *Vault) resolve(rel string, op accessKind) (string, error) {
 		return "", errNotFound
 	}
 	return clean, nil
+}
+
+func (v *Vault) mkdirAll(rel string) error {
+	// Split path and create each segment
+	parts := strings.Split(rel, "/")
+	current := ""
+	for _, p := range parts {
+		if current == "" {
+			current = p
+		} else {
+			current = current + "/" + p
+		}
+		// Check deny list for each directory level
+		if v.deny.match(current) {
+			return errNotPermitted
+		}
+		if err := v.root.Mkdir(current, 0755); err != nil && !errors.Is(err, fs.ErrExist) {
+			return mapFSError(err)
+		}
+	}
+	return nil
 }
 
 func (v *Vault) allowed(clean string, op accessKind) bool {
