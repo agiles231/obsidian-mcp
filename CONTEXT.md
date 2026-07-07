@@ -81,6 +81,7 @@ See [`docs/adr/`](docs/adr/) for full details:
 | [0004](docs/adr/0004-os-root-containment.md) | Containment via `os.Root` (Go 1.24+) |
 | [0005](docs/adr/0005-refusal-error-model.md) | Split refusal taxonomy; deny ⇒ opaque not-found |
 | [0006](docs/adr/0006-threat-model-security-boundaries.md) | Threat model: defense-in-depth, not sandbox |
+| [0007](docs/adr/0007-list-objects-unified-listing.md) | Unified `list_objects` tool for vault discovery |
 
 **URN format:** `urn:obsidian:<user>:<vault>:<type>:<identifier>#<anchor>`
 - In v1: `user` empty, `type` is `note`, `identifier` is vault-relative path
@@ -93,7 +94,8 @@ See [`docs/adr/`](docs/adr/) for full details:
 - **`internal/vault/`** — Vault abstraction with allow/deny glob matching,
   `os.Root` containment, symlink re-validation
 - **`internal/urn/`** — URN parser/resolver (liberal in, canonical out)
-- **`internal/tools/read_note.go`** — First tool, reads note content
+- **`internal/tools/read_note.go`** — Read note content
+- **`internal/tools/list_notes.go`** — List notes (to be replaced by `list_objects`)
 - **`cmd/obsidian-mcp/`** — CLI entry point with flag-based config
 - **Vault registry** — supports multiple vaults (single-vault for now)
 
@@ -114,7 +116,7 @@ See [`docs/use-cases.md`](docs/use-cases.md) for detailed workflows.
 
 | Tool | Purpose | Enables |
 |------|---------|---------|
-| `list_notes` | List notes in a folder | Discovery, browsing |
+| `list_objects` | Unified vault listing with type filters (ADR-0007) | Discovery, browsing |
 | `write_note` | Create/overwrite a note | Save session workflow |
 | `append_note` | Append to a note | Daily notes, incremental capture |
 | `search_notes` | Full-text search | Knowledge queries |

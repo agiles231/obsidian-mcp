@@ -84,7 +84,7 @@ func TestParseRef(t *testing.T) {
 		},
 		{
 			name:    "unknown type",
-			input:   "urn:obsidian::vault:canvas:foo.canvas",
+			input:   "urn:obsidian::vault:unknown:foo.canvas",
 			wantErr: ErrUnknownType,
 		},
 		{
@@ -231,55 +231,55 @@ func TestParseRef_BarePath(t *testing.T) {
 	}
 }
 
-func TestNoteRef_URN(t *testing.T) {
+func TestRef_URN(t *testing.T) {
 	tests := []struct {
 		name string
-		ref  NoteRef
+		ref  Ref
 		want string
 	}{
 		{
 			name: "simple",
-			ref:  NoteRef{Vault: "my-vault", Path: "foo.md"},
+			ref:  Ref{Vault: "my-vault", Type: TypeNote, Path: "foo.md"},
 			want: "urn:obsidian::my-vault:note:foo.md",
 		},
 		{
 			name: "nested path",
-			ref:  NoteRef{Vault: "vault", Path: "Projects/obsidian-mcp/README.md"},
+			ref:  Ref{Vault: "vault", Type: TypeNote, Path: "Projects/obsidian-mcp/README.md"},
 			want: "urn:obsidian::vault:note:Projects/obsidian-mcp/README.md",
 		},
 		{
 			name: "heading anchor",
-			ref:  NoteRef{Vault: "vault", Path: "foo.md", Anchor: Anchor{Headings: []string{"Design"}}},
+			ref:  Ref{Vault: "vault", Type: TypeNote, Path: "foo.md", Anchor: Anchor{Headings: []string{"Design"}}},
 			want: "urn:obsidian::vault:note:foo.md#Design",
 		},
 		{
 			name: "nested heading",
-			ref:  NoteRef{Vault: "vault", Path: "foo.md", Anchor: Anchor{Headings: []string{"Design", "Identity"}}},
+			ref:  Ref{Vault: "vault", Type: TypeNote, Path: "foo.md", Anchor: Anchor{Headings: []string{"Design", "Identity"}}},
 			want: "urn:obsidian::vault:note:foo.md#Design#Identity",
 		},
 		{
 			name: "block ref",
-			ref:  NoteRef{Vault: "vault", Path: "foo.md", Anchor: Anchor{BlockID: "abc123"}},
+			ref:  Ref{Vault: "vault", Type: TypeNote, Path: "foo.md", Anchor: Anchor{BlockID: "abc123"}},
 			want: "urn:obsidian::vault:note:foo.md#^abc123",
 		},
 		{
 			name: "space in path",
-			ref:  NoteRef{Vault: "vault", Path: "Meeting Notes/Q3 Planning.md"},
+			ref:  Ref{Vault: "vault", Type: TypeNote, Path: "Meeting Notes/Q3 Planning.md"},
 			want: "urn:obsidian::vault:note:Meeting%20Notes/Q3%20Planning.md",
 		},
 		{
 			name: "space in vault",
-			ref:  NoteRef{Vault: "my vault", Path: "foo.md"},
+			ref:  Ref{Vault: "my vault", Type: TypeNote, Path: "foo.md"},
 			want: "urn:obsidian::my%20vault:note:foo.md",
 		},
 		{
 			name: "colon in path",
-			ref:  NoteRef{Vault: "vault", Path: "2026-06-29: Daily.md"},
+			ref:  Ref{Vault: "vault", Type: TypeNote, Path: "2026-06-29: Daily.md"},
 			want: "urn:obsidian::vault:note:2026-06-29%3A%20Daily.md",
 		},
 		{
 			name: "hash in heading",
-			ref:  NoteRef{Vault: "vault", Path: "foo.md", Anchor: Anchor{Headings: []string{"C# Guide"}}},
+			ref:  Ref{Vault: "vault", Type: TypeNote, Path: "foo.md", Anchor: Anchor{Headings: []string{"C# Guide"}}},
 			want: "urn:obsidian::vault:note:foo.md#C%23%20Guide",
 		},
 	}
@@ -295,12 +295,12 @@ func TestNoteRef_URN(t *testing.T) {
 }
 
 func TestRoundTrip(t *testing.T) {
-	refs := []NoteRef{
-		{Vault: "vault", Path: "simple.md"},
-		{Vault: "vault", Path: "Projects/nested/deep.md"},
-		{Vault: "vault", Path: "foo.md", Anchor: Anchor{Headings: []string{"H1", "H2"}}},
-		{Vault: "vault", Path: "foo.md", Anchor: Anchor{BlockID: "xyz789"}},
-		{Vault: "My Vault", Path: "Meeting Notes/2026 Q3.md"},
+	refs := []Ref{
+		{Vault: "vault", Type: TypeNote, Path: "simple.md"},
+		{Vault: "vault", Type: TypeNote, Path: "Projects/nested/deep.md"},
+		{Vault: "vault", Type: TypeNote, Path: "foo.md", Anchor: Anchor{Headings: []string{"H1", "H2"}}},
+		{Vault: "vault", Type: TypeNote, Path: "foo.md", Anchor: Anchor{BlockID: "xyz789"}},
+		{Vault: "My Vault", Type: TypeNote, Path: "Meeting Notes/2026 Q3.md"},
 	}
 
 	for _, orig := range refs {

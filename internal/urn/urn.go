@@ -7,19 +7,29 @@ import (
 	"strings"
 )
 
-// NoteRef is a parsed reference to a note; section anchor optional
-type NoteRef struct {
+const (
+	TypeNote = "note"
+	TypeFolder = "folder"
+	TypeAttachment = "attachment"
+	TypeCanvas = "canvas"
+)
+
+// Ref is a parsed reference to a note; section anchor optional
+type Ref struct {
 	Vault  string // logical vault name
+	Type string // "note", "folder", "attachment", "canvas"
 	Path   string // vault-relative path
 	Anchor Anchor // optional section anchor
 }
 
 // URN returns the canonical URN string
-func (r *NoteRef) URN() string {
+func (r *Ref) URN() string {
 	var sb strings.Builder
 	sb.WriteString("urn:obsidian::")
 	sb.WriteString(encodeField(r.Vault))
-	sb.WriteString(":note:")
+	sb.WriteByte(':')
+	sb.WriteString(r.Type)
+	sb.WriteByte(':')
 	sb.WriteString(encodePath(r.Path))
 	if !r.Anchor.IsZero() {
 		sb.WriteByte('#')
@@ -97,18 +107,25 @@ var (
 	ErrUserReserved = errors.New("uesr field must be empty in v1")
 )
 
+var knownTypes = map[string]bool{
+	TypeNote: true,
+	TypeFolder: true,
+	TypeAttachment: true,
+	TypeCanvas: true,
+}
+
 const urnPrefix = "urn:obsidian:"
 
 // ParseRef parses a full URN or a bare vault-relative path.
 // For bare paths, defaultVault is used
-func ParseRef(input, defaultVault string) (*NoteRef, error) {
+func ParseRef(input, defaultVault string) (*Ref, error) {
 	if strings.HasPrefix(strings.ToLower(input), urnPrefix) {
 		return parseURN(input)
 	}
 	return parseBare(input, defaultVault)
 }
 
-func parseURN(input string) (*NoteRef, error) {
+func parseURN(input string) (*Ref, error) {
 	// Strip prefix - case insensitive
 	nss := input[len(urnPrefix):]
 
@@ -137,7 +154,7 @@ func parseURN(input string) (*NoteRef, error) {
 	if vault == "" {
 		return nil, ErrEmptyVault
 	}
-	if rtype != "note" {
+	if !knownTypes[rtype] {
 		return nil, fmt.Errorf("%w, %s", ErrUnknownType, rtype)
 	}
 
@@ -152,10 +169,10 @@ func parseURN(input string) (*NoteRef, error) {
 		return nil, err
 	}
 
-	return &NoteRef{Vault: vault, Path: path, Anchor: anchor}, nil
+	return &Ref{Vault: vault, Type: rtype, Path: path, Anchor: anchor}, nil
 }
 
-func parseBare(input, defaultVault string) (*NoteRef, error) {
+func parseBare(input, defaultVault string) (*Ref, error) {
 	if defaultVault == "" {
 		return nil, ErrEmptyVault
 	}
@@ -168,7 +185,7 @@ func parseBare(input, defaultVault string) (*NoteRef, error) {
 	if path == "" || strings.Contains(path, "//") {
 		return nil, ErrEmptyPath
 	}
-	return &NoteRef{Vault: defaultVault, Path: path}, nil
+	return &Ref{Vault: defaultVault, Type: TypeNote, Path: path}, nil
 }
 
 func decodePath(encoded string) (string, error) {

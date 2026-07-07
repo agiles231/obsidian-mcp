@@ -16,3 +16,5 @@ record. When a decision changes, add a new ADR that supersedes the old one
 | [0003](0003-vault-sole-disk-gateway.md) | A single `Vault` abstraction is the sole gateway to disk | Accepted |
 | [0004](0004-os-root-containment.md) | Build containment on `os.Root` (Go 1.24+) | Accepted |
 | [0005](0005-refusal-error-model.md) | Refusal error model (split taxonomy, deny ⇒ not-found) | Accepted |
+| [0006](0006-threat-model-security-boundaries.md) | Threat model and security boundaries | Accepted |
+| [0007](0007-list-objects-unified-listing.md) | Unified `list_objects` tool for vault discovery | Accepted |

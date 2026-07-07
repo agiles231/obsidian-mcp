@@ -61,7 +61,7 @@ func (t *ListNotes) Execute(ctx context.Context, args json.RawMessage) ([]mcp.Co
 	// Convert paths to URNs
 	urns := []string{}
 	for _, p := range paths {
-		ref := urn.NoteRef{Vault: v.Name(), Path: p}
+		ref := urn.Ref{Vault: v.Name(), Type: urn.TypeNote, Path: p}
 		urns = append(urns, ref.URN())
 	}
 

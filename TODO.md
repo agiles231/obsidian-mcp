@@ -14,7 +14,8 @@
 ## Tools (priority order)
 
 - [x] `read_note` — read note content
-- [ ] `list_notes` — list notes in a folder (flat or recursive?)
+- [x] `list_notes` — list notes in a folder (flat listing) — **superseded by list_objects**
+- [ ] `list_objects` — unified listing with type filters, recursive option (ADR-0007)
 - [ ] `write_note` — create/overwrite a note
 - [ ] `append_note` — append content to a note
 - [ ] `search_notes` — full-text search across vault
