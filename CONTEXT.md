@@ -84,6 +84,7 @@ See [`docs/adr/`](docs/adr/) for full details:
 | [0007](docs/adr/0007-list-objects-unified-listing.md) | Unified `list_objects` tool for vault discovery |
 | [0008](docs/adr/0008-object-type-taxonomy.md) | Object type taxonomy (note, folder, canvas, attachment) |
 | [0009](docs/adr/0009-write-tool-strategy.md) | Write tool strategy: general write_file, no diffs |
+| [0010](docs/adr/0010-daily-note-cli-integration.md) | Daily note: Obsidian CLI with filesystem fallback |
 
 **URN format:** `urn:obsidian:<user>:<vault>:<type>:<identifier>#<anchor>`
 - In v1: `user` empty, `type` is `note`/`folder`/`canvas`/`attachment` (ADR-0008)

@@ -16,8 +16,8 @@
 
 - [x] `read_file` — read note content
 - [x] `list_objects` — unified listing with type filters, recursive option (ADR-0007, ADR-0008)
-- [ ] `write_file` — create/overwrite any file: notes, canvas, etc. (ADR-0009)
-- [ ] `append_note` — append content to a note (ADR-0009)
+- [x] `write_file` — create/overwrite any file: notes, canvas, etc. (ADR-0009)
+- [x] `append_note` — append content to a note (ADR-0009)
 - [ ] `search_notes` — full-text search across vault
 - [ ] `daily_note` — read/append to today's daily note (date-aware path resolution)
 

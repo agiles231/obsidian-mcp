@@ -20,3 +20,4 @@ record. When a decision changes, add a new ADR that supersedes the old one
 | [0007](0007-list-objects-unified-listing.md) | Unified `list_objects` tool for vault discovery | Accepted |
 | [0008](0008-object-type-taxonomy.md) | Object type taxonomy for vault listing | Accepted |
 | [0009](0009-write-tool-strategy.md) | Write tool strategy: general write_file, no diffs, no sections | Accepted |
+| [0010](0010-daily-note-cli-integration.md) | Daily note: Obsidian CLI with filesystem fallback | Accepted |
