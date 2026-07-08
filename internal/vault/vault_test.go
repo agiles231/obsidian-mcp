@@ -131,27 +131,83 @@ func TestWriteFile_NotAllowed(t *testing.T) {
 	 }
 }
 
-func TestAppendFile_Create(t *testing.T) {
-	root := t.TempDir()
-	v, err := Open(Config{Name: "test", Root: root, WriteAllow: []string{"**"}})
+func TestAppendFile_Existing(t *testing.T) {
+	dir := t.TempDir()
+	// Write file directly
+	if err := os.WriteFile(filepath.Join(dir, "note.md"), []byte("line1\n"), 0644); err != nil {
+		t.Fatal(err)
+	}
+	v, err := Open(Config{Name: "test", Root: dir, WriteAllow: []string{"**"}})
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	// append_note's contract is "creates the note if it doesn't exist" -
-	// this must not fail with errNotFound on a brand new file.
+	if err := v.AppendFile(context.Background(), "note.md", []byte("line2\n")); err != nil {
+		t.Fatalf("AppendFile on existing file: %v", err)
+	}
+
+	got, err := os.ReadFile(filepath.Join(dir, "note.md"))
+	if err != nil {
+		t.Fatalf("reading appended file: %v", err)
+	}
+	if string(got) != "line1\nline2\n" {
+		t.Errorf("got = %q, want %q", got, "hello")
+	}
+}
+
+func TestAppendFile_Create(t *testing.T) {
+	dir := t.TempDir()
+	v, err := Open(Config{Name: "test", Root: dir, WriteAllow: []string{"**"}})
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	if err := v.AppendFile(context.Background(), "newnote.md", []byte("hello")); err != nil {
 		t.Fatalf("AppendFile on new file: %v", err)
 	}
 
-	got, err := os.ReadFile(filepath.Join(root, "newnote.md"))
+	got, err := os.ReadFile(filepath.Join(dir, "newnote.md"))
 	if err != nil {
 		t.Fatalf("reading created file: %v", err)
 	}
 	if string(got) != "hello" {
-		t.Errorf("content = %q, want %q", got, "hello")
+		t.Errorf("got = %q, want %q", got, "hello")
 	}
 }
+
+func TestAppendFile_MkdirAll(t *testing.T) {
+	dir := t.TempDir()
+	v, err := Open(Config{Name: "test", Root: dir, WriteAllow: []string{"**"}})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if err := v.AppendFile(context.Background(), "a/b/note.md", []byte("deep")); err != nil {
+		t.Fatalf("AppendFile on deep file: %v", err)
+	}
+
+	got, err := os.ReadFile(filepath.Join(dir, "a/b/note.md"))
+	if err != nil {
+		t.Fatalf("reading created file: %v", err)
+	}
+	if string(got) != "deep" {
+		t.Errorf("got = %q, want %q", got, "deep")
+	}
+}
+
+func TestAppendFile_DenyList(t *testing.T) {
+	dir := t.TempDir()
+	v, err := Open(Config{Name: "test", Root: dir, WriteAllow: []string{"**"}, Deny: []string{"private/**"}})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = v.AppendFile(context.Background(), "private/secret.md", []byte("nope"))
+	if err == nil {
+		t.Fatal("expected error for denied path")
+	}
+}
+
 
 func TestReadDailyNoteConfig_NotFound(t *testing.T) {
 	dir := t.TempDir()

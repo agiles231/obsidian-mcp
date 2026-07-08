@@ -132,6 +132,16 @@ See [`docs/use-cases.md`](docs/use-cases.md) for detailed workflows.
 |------|---------|---------|
 | `search_notes` | Full-text search | Knowledge queries |
 
+**Planned skills (slash commands):**
+
+Skills are templated workflows exposed as slash commands in Claude Code.
+
+| Skill | Purpose |
+|-------|---------|
+| `/save-session` | Save conversation summary to vault with templates |
+| `/daily` | Quick daily note operations |
+| `/search` | Search vault and incorporate context |
+
 ## 7. Working style
 
 Collaborative: **the user writes the code and the assistant guides** with

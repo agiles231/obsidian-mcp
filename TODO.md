@@ -47,6 +47,26 @@
 - [ ] Indirect config file support (`~/.config/obsidian-mcp/config.toml`)
 - [ ] Error wrapping with `vault.AgentMessage()` for user-friendly errors
 
+## Skills (slash commands)
+
+### Planned
+- [ ] `/save-session` — save conversation summary to vault with templates
+- [ ] `/daily` — quick daily note operations (read/append today's note)
+- [ ] `/search` — search vault and incorporate context into conversation
+
+### Potential (to assess)
+- [ ] `/capture` — quick-capture thought to inbox note
+- [ ] `/context` — load relevant notes as conversation context
+- [ ] `/weekly-review` — summarize week's daily notes into weekly note
+- [ ] `/moc` — generate/update Map of Content linking related notes
+- [ ] `/extract` — extract patterns across notes (TODOs, questions)
+- [ ] `/backlinks` — find notes that link to a given note
+- [ ] `/template` — create note from template with variable substitution
+- [ ] `/refactor` — split, merge, restructure notes
+- [ ] `/orphans` — find unlinked notes
+- [ ] `/frontmatter` — bulk edit/standardize YAML frontmatter
+- [ ] `/canvas` — create canvas from conversation or notes
+
 ## Future / Deferred (ADR-0009)
 
 - [ ] `write_section` — modify a specific section by anchor
