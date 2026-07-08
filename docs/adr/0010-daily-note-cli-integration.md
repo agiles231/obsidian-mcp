@@ -95,3 +95,25 @@ func resolveDailyPath(cfg DailyNotesConfig, date time.Time) string {
 
 Moment.js date format tokens (`YYYY`, `MM`, `DD`, etc.) will need a Go
 implementation or lookup table for common patterns.
+
+## Date format escape syntax
+
+Moment.js uses square brackets `[...]` to escape literal text within date
+format strings. Text inside brackets is output verbatim, bypassing token
+interpretation.
+
+Example:
+```
+[daily]-YYYY-MM-DD  →  daily-2026-07-07
+```
+
+This escape syntax is necessary because Moment.js interprets single-letter
+tokens aggressively. Without escaping, literal text containing token characters
+would be corrupted:
+
+| Format | Intended | Actual (unescaped) |
+|--------|----------|-------------------|
+| `daily-YYYY-MM-DD` | `daily-2026-07-07` | `d07mily-2026-07-07` |
+
+The `a` in "daily" matches the am/pm token, producing unexpected output. The
+bracket syntax solves this by marking `daily` as literal text to preserve.

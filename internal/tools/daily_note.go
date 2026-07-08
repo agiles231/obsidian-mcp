@@ -5,8 +5,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"os"
 	"os/exec"
 	"runtime"
+	"strings"
 	"time"
 
 	mcp "github.com/agiles231/mcp-stdio-go"
@@ -140,11 +142,24 @@ func openObsidianDaily(vaultName string) error {
 	case "darwin":
 		cmd = exec.Command("open", uri)
 	case "linux":
-		cmd = exec.Command("xdg-open", uri)
+		if isWSL() {
+			cmd = exec.Command("cmd.exe", "/c", "start", "", uri)
+		} else {
+			cmd = exec.Command("xdg-open", uri)
+		}
 	case "windows":
 		cmd = exec.Command("cmd", "/c", "start", "", uri)
 	default:
 		return errors.New("unsupported platform")
 	}
 	return cmd.Run()
+}
+
+func isWSL() bool {
+	data, err := os.ReadFile("/proc/version")
+	if err != nil {
+		return false
+	}
+	lower := strings.ToLower(string(data))
+	return strings.Contains(lower, "microsoft") || strings.Contains(lower, "wsl")
 }
