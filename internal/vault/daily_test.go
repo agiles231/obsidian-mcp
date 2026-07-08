@@ -1,6 +1,8 @@
 package vault
 
 import (
+	"path/filepath"
+	"os"
 	"testing"
 	"time"
 )
@@ -59,6 +61,100 @@ func TestResolveDailyNotePath(t *testing.T) {
 				t.Errorf("ResolveDailyNotePath() = %q, want %q", got, tt.want)
 			}
 		})
+	}
+
+}
+
+func TestReadDailyNoteConfig_NotFound(t *testing.T) {
+	dir := t.TempDir()
+	v, err := Open(Config{Name: "test", Root: dir})
+	if err != nil {
+		t.Fatalf("Open: %v", err)
+	}
+
+	cfg, err := v.ReadDailyNoteConfig()
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+	}
+
+	if cfg != (DailyNoteConfig{}) {
+		t.Errorf("expected zero config, got %+v", cfg)
+	}
+}
+
+func TestReadDailyNoteConfig_Valid(t *testing.T) {
+	tests := []struct{
+		name string
+		fileContents string
+		want DailyNoteConfig
+	}{
+		{
+			"full config",
+			`{"folder": "Daily", "format": "YYYY-MM-DD", "template": "Templates/Daily"}`,
+			DailyNoteConfig{
+				Folder: "Daily",
+				Format: "YYYY-MM-DD",
+				Template: "Templates/Daily",
+			},
+		},
+		{
+			"partial config",
+			`{"folder": "Journal"}`,
+			DailyNoteConfig{
+				Folder: "Journal",
+				Format: "",
+				Template: "",
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			dir := t.TempDir()
+			// Create .obsidian/daily-notes.json
+			obsDir := filepath.Join(dir, ".obsidian")
+			if err := os.Mkdir(obsDir, 0755); err != nil {
+				t.Fatal(err)
+			}
+			if err := os.WriteFile(filepath.Join(obsDir, "daily-notes.json"), []byte(tt.fileContents), 0644); err != nil {
+				t.Fatal(err)
+			}
+
+			v, err := Open(Config{Name: "test", Root: dir})
+			if err != nil {
+				t.Fatalf("Open: %v", err)
+			}
+
+			cfg, err := v.ReadDailyNoteConfig()
+			if err != nil {
+				t.Errorf("unexpected error: %v", err)
+			}
+
+			if cfg.Folder != tt.want.Folder || cfg.Format != tt.want.Format || cfg.Template !=  tt.want.Template {
+				t.Errorf("unexpected config: %+v", cfg)
+			}
+		})
+	}
+}
+
+func TestReadDailyNoteConfig_InvalidJSON(t *testing.T) {
+	dir := t.TempDir()
+	// Create .obsidian/daily-notes.json
+	obsDir := filepath.Join(dir, ".obsidian")
+	if err := os.Mkdir(obsDir, 0755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(obsDir, "daily-notes.json"), []byte("{not valid}"), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	v, err := Open(Config{Name: "test", Root: dir})
+	if err != nil {
+		t.Fatalf("Open: %v", err)
+	}
+
+	_, err = v.ReadDailyNoteConfig()
+	if err == nil {
+		t.Error("expected error for invalid JSON")
 	}
 
 }
