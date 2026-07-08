@@ -72,7 +72,7 @@ func (d *DailyNote) Execute(ctx context.Context, raw json.RawMessage) ([]mcp.Con
 	}
 
 	today := time.Now()
-	path := v.ResolveDailyNotePath(cfg, today)
+	path := vault.ResolveDailyNotePath(cfg, today)
 
 	switch args.Mode {
 	case "read":

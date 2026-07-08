@@ -2,6 +2,7 @@ package vault
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -225,6 +226,24 @@ func (v *Vault) Stat(ctx context.Context, rel string) (fs.FileInfo, error) {
 	}
 	return fi, nil
 }
+
+// ReadDailyNoteConfig reads the daily notes plugin config.
+// Returns zero config (not error) if plugin not configured.
+func (v *Vault) ReadDailyNoteConfig() (DailyNoteConfig, error) {
+	data, err := v.ReadFile(context.Background(), dailyNotesConfigPath)
+	if errors.Is(err, errNotFound) {
+		return DailyNoteConfig{}, nil
+	}
+	if err != nil {
+		return DailyNoteConfig{}, err
+	}
+	var cfg DailyNoteConfig
+	if err := json.Unmarshal(data, &cfg); err != nil {
+		return DailyNoteConfig{}, err
+	}
+	return cfg, nil
+}
+
 
 func (v *Vault) listDir(ctx context.Context, dir string, opts ListOptions) ([]ObjectEntry, error) {
 	if err := ctx.Err(); err != nil {
