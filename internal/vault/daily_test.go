@@ -5,6 +5,64 @@ import (
 	"time"
 )
 
+func TestResolveDailyNotePath(t *testing.T) {
+	// We need a vault inst, but ResolveDailyNotePath doesn't use vault fields.
+	// Create minimal one.
+	dir := t.TempDir()
+	v, err := Open(Config{Name: "test", Root: dir})
+	if err != nil {
+		t.Fatalf("Open: %v", err)
+	}
+
+	fixed := time.Date(2026, 7, 6, 0, 0, 0, 0, time.UTC)
+
+	tests := []struct {
+		name string
+		cfg DailyNoteConfig
+		want string
+	}{
+		{
+			name: "default format, no folder",
+			cfg: DailyNoteConfig{},
+			want: "2026-07-06.md",
+		},
+		{
+			name: "default format, with folder",
+			cfg: DailyNoteConfig{Folder: "Daily"},
+			want: "Daily/2026-07-06.md",
+		},
+		{
+			name: "custom format",
+			cfg: DailyNoteConfig{Format: "YYYY/MM/DD", Folder: "Journal"},
+			want: "Journal/2026/07/06.md",
+		},
+		{
+			name: "folder with trailing slash",
+			cfg: DailyNoteConfig{Folder: "Daily/"},
+			want: "Daily/2026-07-06.md",
+		},
+		{
+			name: "nested folder",
+			cfg: DailyNoteConfig{Folder: "Notes/Daily"},
+			want: "Notes/Daily/2026-07-06.md",
+		},
+		{
+			name: "format with weekday",
+			cfg: DailyNoteConfig{Format: "YYYY-MM-DD dddd"},
+			want: "2026-07-06 Monday.md",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := v.ResolveDailyNotePath(tt.cfg, fixed)
+			if got != tt.want {
+				t.Errorf("ResolveDailyNotePath() = %q, want %q", got, tt.want)
+			}
+		})
+	}
+
+}
+
 func TestFormatMomentDate(t *testing.T) {
 	// Fixed time: Monday, July 6, 2026, 14:35:09
 	fixed := time.Date(2026, 7,6,14,35,9,0, time.UTC)
