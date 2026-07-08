@@ -96,13 +96,15 @@ See [`docs/adr/`](docs/adr/) for full details:
 ### Implemented ✓
 
 - **`internal/vault/`** — Vault abstraction with allow/deny glob matching,
-  `os.Root` containment, symlink re-validation
+  `os.Root` containment, symlink re-validation; daily note helpers (Moment.js
+  date formatting)
 - **`internal/urn/`** — URN parser/resolver (liberal in, canonical out); generic
   `Ref` type supports all object types (note, folder, canvas, attachment)
 - **`internal/tools/read_file.go`** — Read file content
 - **`internal/tools/list_objects.go`** — List vault objects with type filters
 - **`internal/tools/write_file.go`** — Create/overwrite files
 - **`internal/tools/append_note.go`** — Append to markdown notes
+- **`internal/tools/daily_note.go`** — Daily note with Obsidian CLI fallback (ADR-0010)
 - **`cmd/obsidian-mcp/`** — CLI entry point with flag-based config
 - **Vault registry** — supports multiple vaults (single-vault for now)
 
@@ -122,13 +124,13 @@ See [`docs/use-cases.md`](docs/use-cases.md) for detailed workflows.
 | `list_objects` | Unified vault listing with type filters (ADR-0007) |
 | `write_file` | Create/overwrite any file (ADR-0009) |
 | `append_note` | Append to markdown notes |
+| `daily_note` | Read/append to today's daily note (ADR-0010) |
 
 **Next tools:**
 
 | Tool | Purpose | Enables |
 |------|---------|---------|
 | `search_notes` | Full-text search | Knowledge queries |
-| `daily_note` | Read/append to today's daily note | Date-aware workflows |
 
 ## 7. Working style
 

@@ -17,10 +17,10 @@
 - [x] `tools.ReadFile`
 
 ### Missing — vault layer
-- [ ] `vault.formatMomentDate` — Moment.js → Go time conversion
-- [ ] `vault.ResolveDailyNotePath` — path construction from config + date
-- [ ] `vault.ReadDailyNoteConfig` — JSON parsing, missing file handling
-- [ ] `vault.WriteFile` — create, overwrite, mkdir behavior
+- [x] `vault.formatMomentDate` — Moment.js → Go time conversion
+- [x] `vault.ResolveDailyNotePath` — path construction from config + date
+- [x] `vault.ReadDailyNoteConfig` — JSON parsing, missing file handling
+- [x] `vault.WriteFile` — create, overwrite, mkdir behavior
 - [ ] `vault.AppendFile` — append to existing, create new
 - [ ] `vault.ListObjects` — type filtering, recursion, deny-list
 
