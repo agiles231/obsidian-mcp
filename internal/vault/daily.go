@@ -37,7 +37,7 @@ func (v *Vault) ReadDailyNoteConfig() (DailyNoteConfig, error) {
 func (v *Vault) ResolveDailyNotePath(cfg DailyNoteConfig, date time.Time) string {
 	format := cfg.Format
 	if format == "" {
-		format = "YYY-MM-DD" // Obsidian default
+		format = "YYYY-MM-DD" // Obsidian default
 	}
 	filename := formatMomentDate(format, date) + ".md"
 	if cfg.Folder == "" {
@@ -47,28 +47,50 @@ func (v *Vault) ResolveDailyNotePath(cfg DailyNoteConfig, date time.Time) string
 }
 
 func formatMomentDate(format string, t time.Time) string {
-	replacements := []struct{ moment, go_ string }{
+	tokens := []struct{ moment, goFmt string }{
 		{"YYYY", "2006"},
-		{"YY", "06"},
 		{"MMMM", "January"},
-		{"MMM", "Jan"},
-		{"MM", "01"},
-		{"M", "1"},
 		{"DDDD", "002"},
-		{"DD", "02"},
-		{"D", "2"},
 		{"dddd", "Monday"},
+		{"MMM", "Jan"},
 		{"ddd", "Mon"},
+		{"YY", "06"},
+		{"MM", "01"},
+		{"DD", "02"},
 		{"HH", "15"},
 		{"hh", "03"},
 		{"mm", "04"},
 		{"ss", "05"},
+		{"M", "1"},
+		{"D", "2"},
 		{"A", "PM"},
 		{"a", "pm"},
 	}
-	goFmt := format
-	for _, r := range replacements {
-		goFmt = strings.ReplaceAll(goFmt, r.moment, r.go_)
+	var result strings.Builder
+	for i := 0; i < len(format); {
+		// Escape sequences: [literal text]
+		if format[i] == '[' {
+			// find matching bracket
+			end := strings.Index(format[i+1:], "]")
+			if end != -1 {
+				result.WriteString(format[i+1 : i+1+end])
+				i += end + 2 // skip both brackets
+				continue
+			}
+		}
+		matched := false
+		for _, tok := range tokens {
+			if strings.HasPrefix(format[i:], tok.moment) {
+				result.WriteString(t.Format(tok.goFmt))
+				i += len(tok.moment)
+				matched = true
+				break
+			}
+		}
+		if !matched {
+			result.WriteByte(format[i])
+			i++
+		}
 	}
-	return t.Format(goFmt)
+	return result.String()
 }

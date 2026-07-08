@@ -315,12 +315,20 @@ func (v *Vault) resolve(rel string, op accessKind) (string, error) {
 	}
 
 	// gate 4: symlink real-path re-check (containment AND deny) - see ADR-0004
-	real, err := filepath.EvalSymlinks(filepath.Join(v.rootPath, clean))
+	//
+	// The target itself may not exist yet (WriteFile/AppendFile create it),
+	// so resolve symlinks against the deepest existing ancestor and rejoin
+	// the not-yet-existing remainder rather than failing outright.
+	existing, remainder, err := nearestExistingAncestor(filepath.Join(v.rootPath, clean))
 	if err != nil {
-		if errors.Is(err, fs.ErrNotExist) {
-			return "", errNotFound
-		}
 		return "", errOutsideVault
+	}
+	real, err := filepath.EvalSymlinks(existing)
+	if err != nil {
+		return "", errOutsideVault
+	}
+	if remainder != "" {
+		real = filepath.Join(real, remainder)
 	}
 	realRel, ok := underRoot(v.rootPath, real)
 	if !ok {
@@ -332,6 +340,28 @@ func (v *Vault) resolve(rel string, op accessKind) (string, error) {
 		return "", errNotFound
 	}
 	return clean, nil
+}
+
+// nearestExistingAncestor walks up from p until it finds a path that
+// exists on disk, returning that existing path and the (still-slash-joined,
+// not-yet-existing) remainder beneath it. p itself may not exist, but the
+// root filesystem always does, so this terminates.
+func nearestExistingAncestor(p string) (existing string, remainder string, err error) {
+	cur := filepath.Clean(p)
+	var parts []string
+	for {
+		if _, statErr := os.Lstat(cur); statErr == nil {
+			return cur, filepath.Join(parts...), nil
+		} else if !errors.Is(statErr, fs.ErrNotExist) {
+			return "", "", statErr
+		}
+		parent := filepath.Dir(cur)
+		if parent == cur {
+			return "", "", fs.ErrNotExist
+		}
+		parts = append([]string{filepath.Base(cur)}, parts...)
+		cur = parent
+	}
 }
 
 func (v *Vault) mkdirAll(rel string) error {

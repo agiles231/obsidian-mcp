@@ -54,6 +54,7 @@ func main() {
 	readFile := tools.NewReadFile(registry)
 	writeFile := tools.NewWriteFile(registry)
 	appendNote := tools.NewAppendNote(registry)
+	dailyNote := tools.NewDailyNote(registry)
 	listObjects := tools.NewListObjects(registry)
 
 	srv := mcp.NewServer("obsidian-mcp", "0.1.0",
@@ -62,6 +63,7 @@ func main() {
 	srv.Register(readFile)
 	srv.Register(writeFile)
 	srv.Register(appendNote)
+	srv.Register(dailyNote)
 	srv.Register(listObjects)
 
 	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)

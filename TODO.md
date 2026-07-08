@@ -8,8 +8,29 @@
 
 ## Tests
 
-- [x] Tests for `vault.Registry`
-- [x] Tests for `tools.ReadNote`
+### Existing
+- [x] `vault.Registry`
+- [x] `vault.Vault` (core operations)
+- [x] `vault.patternSet` (glob matching)
+- [x] `vault.errors` (error mapping)
+- [x] `urn.Parse` / `urn.Ref`
+- [x] `tools.ReadFile`
+
+### Missing — vault layer
+- [ ] `vault.formatMomentDate` — Moment.js → Go time conversion
+- [ ] `vault.ResolveDailyNotePath` — path construction from config + date
+- [ ] `vault.ReadDailyNoteConfig` — JSON parsing, missing file handling
+- [ ] `vault.WriteFile` — create, overwrite, mkdir behavior
+- [ ] `vault.AppendFile` — append to existing, create new
+- [ ] `vault.ListObjects` — type filtering, recursion, deny-list
+
+### Missing — tools layer
+- [ ] `tools.WriteFile`
+- [ ] `tools.AppendNote`
+- [ ] `tools.ListObjects`
+- [ ] `tools.DailyNote` — all modes, CLI fallback behavior
+
+### Integration
 - [ ] Integration tests with real vault filesystem
 
 ## Tools (priority order)
@@ -19,7 +40,7 @@
 - [x] `write_file` — create/overwrite any file: notes, canvas, etc. (ADR-0009)
 - [x] `append_note` — append content to a note (ADR-0009)
 - [ ] `search_notes` — full-text search across vault
-- [ ] `daily_note` — read/append to today's daily note (date-aware path resolution)
+- [x] `daily_note` — read/append to today's daily note (ADR-0010)
 
 ## Features
 
