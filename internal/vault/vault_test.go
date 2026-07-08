@@ -4,6 +4,7 @@ import (
 	"context"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -208,6 +209,123 @@ func TestAppendFile_DenyList(t *testing.T) {
 	}
 }
 
+func TestListObject_Basic(t *testing.T) {
+	dir := t.TempDir()
+	os.WriteFile(filepath.Join(dir, "note.md"), []byte("test"), 0644)
+	os.WriteFile(filepath.Join(dir, "image.md"), []byte("test"), 0644)
+	os.MkdirAll(filepath.Join(dir, "folder"), 0755)
+
+	v, err := Open(Config{Name: "test", Root: dir})
+	if err != nil {
+		t.Fatalf("Open: %v", err)
+	}
+
+	entries, err := v.ListObjects(context.Background(), "", ListOptions{})
+	if err != nil {
+		t.Fatalf("ListObjects: %v", err)
+	}
+	if len(entries) != 3 {
+		t.Errorf("got %d entries, want 3", len(entries))
+	}
+}
+
+func TestListObject_TypeFilter(t *testing.T) {
+	dir := t.TempDir()
+	os.WriteFile(filepath.Join(dir, "a.md"), []byte("test"), 0644)
+	os.WriteFile(filepath.Join(dir, "b.md"), []byte("test"), 0644)
+	os.WriteFile(filepath.Join(dir, "img.png"), []byte(""), 0644)
+	os.MkdirAll(filepath.Join(dir, "sub"), 0755)
+
+	v, err := Open(Config{Name: "test", Root: dir})
+	if err != nil {
+		t.Fatalf("Open: %v", err)
+	}
+
+	entries, err := v.ListObjects(context.Background(), "", ListOptions{
+		Types: map[string]bool{"note": true},
+	})
+	if err != nil {
+		t.Fatalf("ListObjects: %v", err)
+	}
+	if len(entries) != 2 {
+		t.Errorf("got %d notes, want 2 notes", len(entries))
+	}
+
+	for _, e := range entries {
+		if e.Type !=  "note" {
+			t.Errorf("unexpected type %q", e.Type)
+		}
+	}
+}
+
+func TestListObject_Recursive(t *testing.T) {
+	dir := t.TempDir()
+	os.WriteFile(filepath.Join(dir, "top.md"), []byte("test"), 0644)
+	os.MkdirAll(filepath.Join(dir, "a/b"), 0755)
+	os.WriteFile(filepath.Join(dir, "a/mid.md"), []byte("test"), 0644)
+	os.WriteFile(filepath.Join(dir, "a/b/deep.md"), []byte("test"), 0644)
+
+	v, err := Open(Config{Name: "test", Root: dir})
+	if err != nil {
+		t.Fatalf("Open: %v", err)
+	}
+
+	entries, err := v.ListObjects(context.Background(), "", ListOptions{
+		Types: map[string]bool{"note": true},
+		Recursive: true,
+	})
+	if err != nil {
+		t.Fatalf("ListObjects: %v", err)
+	}
+	if len(entries) != 3 {
+		t.Errorf("got %d notes, want 3", len(entries))
+	}
+}
+
+func TestListObject_DenyList(t *testing.T) {
+	dir := t.TempDir()
+	os.WriteFile(filepath.Join(dir, "public.md"), []byte("test"), 0644)
+	os.MkdirAll(filepath.Join(dir, "private"), 0755)
+	os.WriteFile(filepath.Join(dir, "private/secret.md"), []byte("test"), 0644)
+
+	v, err := Open(Config{Name: "test", Root: dir, Deny: []string{"private/**"}})
+	if err != nil {
+		t.Fatalf("Open: %v", err)
+	}
+
+	entries, err := v.ListObjects(context.Background(), "", ListOptions{
+		Recursive: true,
+	})
+	if err != nil {
+		t.Fatalf("ListObjects: %v", err)
+	}
+	for _, e := range entries {
+		if strings.HasPrefix(e.Path, "private") {
+			t.Errorf("denied path leaked: %s", e.Path)
+		}
+	}
+}
+
+func TestListObject_Subdir(t *testing.T) {
+	dir := t.TempDir()
+	os.MkdirAll(filepath.Join(dir, "notes"), 0755)
+	os.WriteFile(filepath.Join(dir, "notes/a.md"), []byte("test"), 0644)
+	os.WriteFile(filepath.Join(dir, "notes/b.md"), []byte("test"), 0644)
+	os.WriteFile(filepath.Join(dir, "other.md"), []byte("test"), 0644)
+
+	v, err := Open(Config{Name: "test", Root: dir})
+	if err != nil {
+		t.Fatalf("Open: %v", err)
+	}
+
+	entries, err := v.ListObjects(context.Background(), "notes", ListOptions{})
+	if err != nil {
+		t.Fatalf("ListObjects: %v", err)
+	}
+	if len(entries) != 2 {
+		t.Errorf("got %d notes, want 2", len(entries))
+	}
+}
 
 func TestReadDailyNoteConfig_NotFound(t *testing.T) {
 	dir := t.TempDir()

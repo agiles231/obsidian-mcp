@@ -21,7 +21,7 @@
 - [x] `vault.ResolveDailyNotePath` — path construction from config + date
 - [x] `vault.ReadDailyNoteConfig` — JSON parsing, missing file handling
 - [x] `vault.WriteFile` — create, overwrite, mkdir behavior
-- [ ] `vault.AppendFile` — append to existing, create new
+- [x] `vault.AppendFile` — append to existing, create new
 - [ ] `vault.ListObjects` — type filtering, recursion, deny-list
 
 ### Missing — tools layer
@@ -39,8 +39,8 @@
 - [x] `list_objects` — unified listing with type filters, recursive option (ADR-0007, ADR-0008)
 - [x] `write_file` — create/overwrite any file: notes, canvas, etc. (ADR-0009)
 - [x] `append_note` — append content to a note (ADR-0009)
-- [ ] `search_notes` — full-text search across vault
 - [x] `daily_note` — read/append to today's daily note (ADR-0010)
+- [ ] `search_notes` — full-text search across vault
 
 ## Features
 
