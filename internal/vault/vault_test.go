@@ -41,9 +41,9 @@ func TestCleanVaultRel(t *testing.T) {
 	}
 }
 
-func TestWriteFile_NewFile(t *testing.T) {
-	root := t.TempDir()
-	v, err := Open(Config{Name: "test", Root: root, WriteAllow: []string{"**"}})
+func TestWriteFile_Create(t *testing.T) {
+	dir := t.TempDir()
+	v, err := Open(Config{Name: "test", Root: dir, WriteAllow: []string{"**"}})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -55,7 +55,7 @@ func TestWriteFile_NewFile(t *testing.T) {
 		t.Fatalf("WriteFile on new file: %v", err)
 	}
 
-	got, err := os.ReadFile(filepath.Join(root, "newfile.md"))
+	got, err := os.ReadFile(filepath.Join(dir, "newfile.md"))
 	if err != nil {
 		t.Fatalf("reading created file: %v", err)
 	}
@@ -64,7 +64,50 @@ func TestWriteFile_NewFile(t *testing.T) {
 	}
 }
 
-func TestAppendFile_NewFile(t *testing.T) {
+func TestWriteFile_Overwrite(t *testing.T) {
+	dir := t.TempDir()
+	if err := os.WriteFile(filepath.Join(dir, "exist.md"), []byte("old"), 0644); err != nil {
+		t.Fatal(err)
+	}
+	v, err := Open(Config{Name: "test", Root: dir, WriteAllow: []string{"**"}})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if err := v.WriteFile(context.Background(), "exist.md", []byte("new")); err != nil {
+		t.Fatalf("WriteFile on existing file: %v", err)
+	}
+
+	got, err := os.ReadFile(filepath.Join(dir, "exist.md"))
+	if err != nil {
+		t.Fatalf("reading existing file: %v", err)
+	}
+	if string(got) != "new" {
+		t.Errorf("content = %q, want %q", got, "new")
+	}
+}
+
+func TestWriteFile_MkdirAll(t *testing.T) {
+	dir := t.TempDir()
+	v, err := Open(Config{Name: "test", Root: dir, WriteAllow: []string{"**"}})
+	if err != nil {
+		t.Fatalf("Open: %v", err)
+	}
+
+	if err := v.WriteFile(context.Background(), "a/b/c/note.md", []byte("deep")); err != nil {
+		t.Fatalf("WriteFile on existing file: %v", err)
+	}
+
+	got, err := os.ReadFile(filepath.Join(dir, "a/b/c/note.md"))
+	if err != nil {
+		t.Fatalf("reading nested file: %v", err)
+	}
+	if string(got) != "deep" {
+		t.Errorf("content = %q, want %q", got, "new")
+	}
+}
+
+func TestAppendFile_Create(t *testing.T) {
 	root := t.TempDir()
 	v, err := Open(Config{Name: "test", Root: root, WriteAllow: []string{"**"}})
 	if err != nil {
