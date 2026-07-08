@@ -107,6 +107,30 @@ func TestWriteFile_MkdirAll(t *testing.T) {
 	}
 }
 
+func TestWriteFile_DenyList(t *testing.T) {
+	dir := t.TempDir()
+	v, err := Open(Config{Name: "test", Root: dir, WriteAllow: []string{"**"}, Deny: []string{"private"}})
+	if err != nil {
+		t.Fatalf("Open: %v", err)
+	}
+	 err = v.WriteFile(context.Background(), "private/secret.md", []byte("nope"))
+	 if err == nil {
+		 t.Error("expected error for denied path")
+	 }
+}
+
+func TestWriteFile_NotAllowed(t *testing.T) {
+	dir := t.TempDir()
+	v, err := Open(Config{Name: "test", Root: dir, WriteAllow: []string{"notes/**"}})
+	if err != nil {
+		t.Fatalf("Open: %v", err)
+	}
+	 err = v.WriteFile(context.Background(), "other/file.md", []byte("nope"))
+	 if err == nil {
+		 t.Error("expected error for path not in WriteAllow")
+	 }
+}
+
 func TestAppendFile_Create(t *testing.T) {
 	root := t.TempDir()
 	v, err := Open(Config{Name: "test", Root: root, WriteAllow: []string{"**"}})
