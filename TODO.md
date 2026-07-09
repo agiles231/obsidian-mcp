@@ -22,13 +22,14 @@
 - [x] `vault.ReadDailyNoteConfig` — JSON parsing, missing file handling
 - [x] `vault.WriteFile` — create, overwrite, mkdir behavior
 - [x] `vault.AppendFile` — append to existing, create new
-- [ ] `vault.ListObjects` — type filtering, recursion, deny-list
+- [x] `vault.ListObjects` — type filtering, recursion, deny-list
 
 ### Missing — tools layer
-- [ ] `tools.WriteFile`
-- [ ] `tools.AppendNote`
-- [ ] `tools.ListObjects`
-- [ ] `tools.DailyNote` — all modes, CLI fallback behavior
+- [x] `tools.ReadFile` — existing
+- [~] `tools.WriteFile` — thin wrapper, covered by vault tests
+- [~] `tools.AppendNote` — thin wrapper, covered by vault tests
+- [~] `tools.ListObjects` — thin wrapper, covered by vault tests
+- [ ] `tools.DailyNote` — has composition logic, worth testing
 
 ### Integration
 - [ ] Integration tests with real vault filesystem

@@ -112,7 +112,7 @@ func (d *DailyNote) append(ctx context.Context, v *vault.Vault, path string, con
 	if err := v.AppendFile(ctx, path, []byte(text)); err != nil {
 		return nil, err
 	}
-	return []mcp.Content{mcp.Text(fmt.Sprintf("Appended to %s", path))}, nil
+	return []mcp.Content{mcp.Text(fmt.Sprintf("appended to %s", path))}, nil
 }
 
 func (d *DailyNote) create(ctx context.Context, v *vault.Vault, path string) ([]mcp.Content, error) {
