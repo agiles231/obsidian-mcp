@@ -21,3 +21,4 @@ record. When a decision changes, add a new ADR that supersedes the old one
 | [0008](0008-object-type-taxonomy.md) | Object type taxonomy for vault listing | Accepted |
 | [0009](0009-write-tool-strategy.md) | Write tool strategy: general write_file, no diffs, no sections | Accepted |
 | [0010](0010-daily-note-cli-integration.md) | Daily note: Obsidian CLI with filesystem fallback | Accepted |
+| [0011](0011-stdlib-only-search.md) | Stdlib-only search index | Accepted |

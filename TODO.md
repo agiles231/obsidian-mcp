@@ -29,7 +29,7 @@
 - [~] `tools.WriteFile` — thin wrapper, covered by vault tests
 - [~] `tools.AppendNote` — thin wrapper, covered by vault tests
 - [~] `tools.ListObjects` — thin wrapper, covered by vault tests
-- [ ] `tools.DailyNote` — has composition logic, worth testing
+- [x] `tools.DailyNote` — has composition logic, worth testing
 
 ### Integration
 - [ ] Integration tests with real vault filesystem
