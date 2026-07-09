@@ -12,7 +12,7 @@ No Obsidian plugins, no network listener — stdio only.
 Requires **Go 1.24+**.
 
 ```bash
-go install github.com/agiles231/obsidian-mcp/cmd/obsidian-mcp@v0.1.0
+go install github.com/agiles231/obsidian-mcp/cmd/obsidian-mcp@v0.1.1
 ```
 
 Or install the latest tagged release:

@@ -7,6 +7,7 @@ import (
 	"log/slog"
 	"os"
 	"os/signal"
+	"runtime/debug"
 	"strings"
 	"syscall"
 
@@ -16,7 +17,18 @@ import (
 )
 
 // version is set at release build time via -ldflags "-X main.version=vX.Y.Z".
+// When unset, resolveVersion falls back to the module version from go install.
 var version = "dev"
+
+func resolveVersion() string {
+	if version != "dev" && version != "" {
+		return version
+	}
+	if info, ok := debug.ReadBuildInfo(); ok && info.Main.Version != "" && info.Main.Version != "(devel)" {
+		return info.Main.Version
+	}
+	return version
+}
 
 func main() {
 	var (
@@ -29,10 +41,11 @@ func main() {
 	)
 	flag.Parse()
 
+	ver := resolveVersion()
 	logger := slog.New(slog.NewTextHandler(os.Stderr, nil))
 
 	if *showVersion {
-		fmt.Println(version)
+		fmt.Println(ver)
 		os.Exit(0)
 	}
 
@@ -68,7 +81,7 @@ func main() {
 	dailyNote := tools.NewDailyNote(registry)
 	listObjects := tools.NewListObjects(registry)
 
-	srv := mcp.NewServer("obsidian-mcp", version,
+	srv := mcp.NewServer("obsidian-mcp", ver,
 		mcp.WithLogger(logger),
 	)
 	srv.Register(readFile)
@@ -81,7 +94,7 @@ func main() {
 	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer cancel()
 
-	logger.Info("starting obsidian-mcp", "version", version, "vault", *vaultName)
+	logger.Info("starting obsidian-mcp", "version", ver, "vault", *vaultName)
 	if err := srv.Run(ctx); err != nil {
 		logger.Error("server error", "err", err)
 		os.Exit(1)
