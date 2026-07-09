@@ -13,6 +13,8 @@ import (
 	"path/filepath"
 	"slices"
 	"strings"
+
+	"github.com/agiles231/obsidian-mcp/internal/search"
 )
 
 type Config struct {
@@ -31,6 +33,7 @@ type Vault struct {
 	readAllow  patternSet
 	writeAllow patternSet
 	deny       patternSet
+	index      *search.Index
 	log        *slog.Logger
 }
 
@@ -92,6 +95,37 @@ func Open(cfg Config) (*Vault, error) {
 }
 
 func (v *Vault) Name() string { return v.name }
+
+func (v *Vault) BuildSearchIndex(ctx context.Context) error {
+	index := search.NewIndex()
+	entries, err := v.ListObjects(ctx, "", ListOptions{
+		Types: map[string]bool{"note": true},
+		Recursive: true,
+	})
+	if err != nil {
+		return err
+	}
+	for _, e := range entries {
+		bytes, err := v.ReadFile(ctx, e.Path)
+		if err != nil {
+			return err
+		}
+		index.Add(e.Path, bytes)
+	}
+	v.index = index
+	return nil
+}
+
+func (v *Vault) Search(ctx context.Context, query string, limit int) ([]search.Result, error) {
+	if v.index == nil {
+		return nil, errors.New("search index not built")
+	}
+	results, err := v.index.Search(ctx, query, limit)
+	if err != nil {
+		return nil, err
+	}
+	return results, nil
+}
 
 func (v *Vault) ListObjects(ctx context.Context, dir string, opts ListOptions) ([]ObjectEntry, error) {
 	if err := ctx.Err(); err != nil {
