@@ -12,37 +12,37 @@ func TestResolveDailyNotePath(t *testing.T) {
 
 	tests := []struct {
 		name string
-		cfg DailyNoteConfig
+		cfg  DailyNoteConfig
 		want string
 	}{
 		{
 			name: "default format, no folder",
-			cfg: DailyNoteConfig{},
+			cfg:  DailyNoteConfig{},
 			want: "2026-07-06.md",
 		},
 		{
 			name: "default format, with folder",
-			cfg: DailyNoteConfig{Folder: "Daily"},
+			cfg:  DailyNoteConfig{Folder: "Daily"},
 			want: "Daily/2026-07-06.md",
 		},
 		{
 			name: "custom format",
-			cfg: DailyNoteConfig{Format: "YYYY/MM/DD", Folder: "Journal"},
+			cfg:  DailyNoteConfig{Format: "YYYY/MM/DD", Folder: "Journal"},
 			want: "Journal/2026/07/06.md",
 		},
 		{
 			name: "folder with trailing slash",
-			cfg: DailyNoteConfig{Folder: "Daily/"},
+			cfg:  DailyNoteConfig{Folder: "Daily/"},
 			want: "Daily/2026-07-06.md",
 		},
 		{
 			name: "nested folder",
-			cfg: DailyNoteConfig{Folder: "Notes/Daily"},
+			cfg:  DailyNoteConfig{Folder: "Notes/Daily"},
 			want: "Notes/Daily/2026-07-06.md",
 		},
 		{
 			name: "format with weekday",
-			cfg: DailyNoteConfig{Format: "YYYY-MM-DD dddd"},
+			cfg:  DailyNoteConfig{Format: "YYYY-MM-DD dddd"},
 			want: "2026-07-06 Monday.md",
 		},
 	}
@@ -59,12 +59,12 @@ func TestResolveDailyNotePath(t *testing.T) {
 
 func TestFormatMomentDate(t *testing.T) {
 	// Fixed time: Monday, July 6, 2026, 14:35:09
-	fixed := time.Date(2026, 7,6,14,35,9,0, time.UTC)
+	fixed := time.Date(2026, 7, 6, 14, 35, 9, 0, time.UTC)
 
 	tests := []struct {
-		name string
+		name   string
 		format string
-		want string
+		want   string
 	}{
 		// Common Obsidian daily note formats
 		{"iso_date", "YYYY-MM-DD", "2026-07-06"},

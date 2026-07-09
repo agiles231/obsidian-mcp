@@ -9,30 +9,30 @@ import (
 )
 
 type Index struct {
-	mu sync.RWMutex
-	docs map[string]*Document
+	mu       sync.RWMutex
+	docs     map[string]*Document
 	postings map[string][]Posting
 }
 
 type Document struct {
-	Path string
+	Path      string
 	TermCount int
 }
 
 type Posting struct {
-	Path string
+	Path      string
 	Positions []int
-	TF float64
+	TF        float64
 }
 
 type Result struct {
-	Path string
+	Path  string
 	Score float64
 }
 
 func NewIndex() *Index {
 	return &Index{
-		docs: make(map[string]*Document),
+		docs:     make(map[string]*Document),
 		postings: make(map[string][]Posting),
 	}
 }
@@ -45,7 +45,7 @@ func (idx *Index) Add(path string, content []byte) {
 	termPos := make(map[string][]int)
 	termCount := len(terms)
 	d := Document{
-		Path: path,
+		Path:      path,
 		TermCount: termCount,
 	}
 
@@ -63,9 +63,9 @@ func (idx *Index) Add(path string, content []byte) {
 		c := len(pos)
 		tf := float64(c) / float64(termCount)
 		posting := Posting{
-			Path: path,
+			Path:      path,
 			Positions: pos,
-			TF: tf,
+			TF:        tf,
 		}
 		postings, ok := idx.postings[term]
 		if ok {
@@ -95,7 +95,6 @@ func (idx *Index) Remove(path string) {
 		}
 	}
 }
-
 
 func (idx *Index) Search(ctx context.Context, query string, limit int) ([]Result, error) {
 	idx.mu.Lock()
@@ -143,7 +142,7 @@ func (idx *Index) bm25(ctx context.Context, terms []string, limit int) ([]Result
 
 		// IDF: log((N - n + 0.5) / (n + 0.5) + 1)
 		n := float64(len(postings))
-		idf := math.Log((N - n+0.5)/(n+0.5) + 1)
+		idf := math.Log((N-n+0.5)/(n+0.5) + 1)
 
 		// Check for ctx cancel
 		if ctx.Err() != nil {
@@ -160,7 +159,7 @@ func (idx *Index) bm25(ctx context.Context, terms []string, limit int) ([]Result
 			}
 
 			f := float64(len(p.Positions)) // raw term frequency
-			dl := float64(doc.TermCount) // doc length
+			dl := float64(doc.TermCount)   // doc length
 
 			// BM35 score contribution
 			num := f * (k1 + 1)

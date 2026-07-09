@@ -102,7 +102,7 @@ func (v *Vault) BuildSearchIndex(ctx context.Context) error {
 	}
 	index := search.NewIndex()
 	entries, err := v.ListObjects(ctx, "", ListOptions{
-		Types: map[string]bool{"note": true},
+		Types:     map[string]bool{"note": true},
 		Recursive: true,
 	})
 	if err != nil {
@@ -280,7 +280,6 @@ func (v *Vault) ReadDailyNoteConfig() (DailyNoteConfig, error) {
 	}
 	return cfg, nil
 }
-
 
 func (v *Vault) listDir(ctx context.Context, dir string, opts ListOptions) ([]ObjectEntry, error) {
 	if err := ctx.Err(); err != nil {

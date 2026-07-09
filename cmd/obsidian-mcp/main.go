@@ -54,6 +54,7 @@ func main() {
 	readFile := tools.NewReadFile(registry)
 	writeFile := tools.NewWriteFile(registry)
 	appendNote := tools.NewAppendNote(registry)
+	searchNotes := tools.NewSearchNotes(registry)
 	dailyNote := tools.NewDailyNote(registry)
 	listObjects := tools.NewListObjects(registry)
 
@@ -63,6 +64,7 @@ func main() {
 	srv.Register(readFile)
 	srv.Register(writeFile)
 	srv.Register(appendNote)
+	srv.Register(searchNotes)
 	srv.Register(dailyNote)
 	srv.Register(listObjects)
 

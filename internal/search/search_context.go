@@ -53,9 +53,9 @@ func extractWindow(content string, pos, matchLen, windowRunes int) string {
 
 	// Calculate start and end rune pos
 	halfWindow := windowRunes / 2
-	startRune := clamp(runePos - halfWindow, 0, totalRunes)
-	endRune := clamp(startRune + windowRunes, 0, totalRunes)
-	startRune = clamp(endRune - windowRunes, 0, totalRunes)
+	startRune := clamp(runePos-halfWindow, 0, totalRunes)
+	endRune := clamp(startRune+windowRunes, 0, totalRunes)
+	startRune = clamp(endRune-windowRunes, 0, totalRunes)
 
 	start := runeOffsetToByteOffset(content, startRune)
 	end := runeOffsetToByteOffset(content, endRune)

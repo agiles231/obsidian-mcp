@@ -29,15 +29,15 @@ func (s *SearchNotes) Schema() mcp.InputSchema {
 		Type: "object",
 		Properties: map[string]mcp.Property{
 			"vault": {
-				Type: "string",
+				Type:        "string",
 				Description: "Vault name",
 			},
 			"query": {
-				Type: "string",
+				Type:        "string",
 				Description: "Search query (space-separated terms, AND semantics)",
 			},
 			"limit": {
-				Type: "integer",
+				Type:        "integer",
 				Description: "Maximum results to return (default 10)",
 			},
 		},
@@ -48,7 +48,7 @@ func (s *SearchNotes) Schema() mcp.InputSchema {
 type searchNotesArgs struct {
 	Vault string `json:"vault"`
 	Query string `json:"query"`
-	Limit int `json:"limit"`
+	Limit int    `json:"limit"`
 }
 
 func (s *SearchNotes) Execute(ctx context.Context, raw json.RawMessage) ([]mcp.Content, error) {
@@ -96,4 +96,14 @@ func (s *SearchNotes) Execute(ctx context.Context, raw json.RawMessage) ([]mcp.C
 		fmt.Fprintf(&out, "   %s\n\n", searchContext)
 	}
 	return []mcp.Content{mcp.Text(out.String())}, nil
+}
+
+func (s *SearchNotes) Annotations() mcp.Annotations {
+	return mcp.Annotations{
+		Title:           "Search Notes",
+		ReadOnlyHint:    mcp.HintTrue(),
+		DestructiveHint: mcp.HintFalse(),
+		IdempotentHint:  mcp.HintTrue(),
+		OpenWorldHint:   mcp.HintFalse(),
+	}
 }

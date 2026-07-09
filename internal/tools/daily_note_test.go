@@ -12,7 +12,7 @@ import (
 )
 
 func dailyNoteName() string {
-	return time.Now().Format("2006-01-02")+".md"
+	return time.Now().Format("2006-01-02") + ".md"
 }
 
 func createDailyNote(dir, content string) string {
@@ -53,7 +53,7 @@ func TestDailyNote_ReadExisting(t *testing.T) {
 	tool := NewDailyNote(reg)
 	args, _ := json.Marshal(map[string]any{
 		"vault": "test",
-		"mode": "read",
+		"mode":  "read",
 	})
 
 	result, err := tool.Execute(context.Background(), args)
@@ -75,8 +75,8 @@ func TestDailyNote_Append(t *testing.T) {
 
 	tool := NewDailyNote(reg)
 	args, _ := json.Marshal(map[string]any{
-		"vault": "test",
-		"mode": "append",
+		"vault":   "test",
+		"mode":    "append",
 		"content": "line2",
 	})
 
@@ -96,8 +96,8 @@ func TestDailyNote_DefaultConfig(t *testing.T) {
 
 	tool := NewDailyNote(reg)
 	args, _ := json.Marshal(map[string]any{
-		"vault": "test",
-		"mode": "append",
+		"vault":   "test",
+		"mode":    "append",
 		"content": "test",
 	})
 
@@ -120,7 +120,7 @@ func TestDailyNote_AppendMissingContent(t *testing.T) {
 	tool := NewDailyNote(reg)
 	args, _ := json.Marshal(map[string]any{
 		"vault": "test",
-		"mode": "append",
+		"mode":  "append",
 	})
 
 	_, err := tool.Execute(context.Background(), args)
@@ -128,4 +128,3 @@ func TestDailyNote_AppendMissingContent(t *testing.T) {
 		t.Error("expected error for missing content")
 	}
 }
-

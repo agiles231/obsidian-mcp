@@ -114,10 +114,10 @@ func TestWriteFile_DenyList(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Open: %v", err)
 	}
-	 err = v.WriteFile(context.Background(), "private/secret.md", []byte("nope"))
-	 if err == nil {
-		 t.Error("expected error for denied path")
-	 }
+	err = v.WriteFile(context.Background(), "private/secret.md", []byte("nope"))
+	if err == nil {
+		t.Error("expected error for denied path")
+	}
 }
 
 func TestWriteFile_NotAllowed(t *testing.T) {
@@ -126,10 +126,10 @@ func TestWriteFile_NotAllowed(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Open: %v", err)
 	}
-	 err = v.WriteFile(context.Background(), "other/file.md", []byte("nope"))
-	 if err == nil {
-		 t.Error("expected error for path not in WriteAllow")
-	 }
+	err = v.WriteFile(context.Background(), "other/file.md", []byte("nope"))
+	if err == nil {
+		t.Error("expected error for path not in WriteAllow")
+	}
 }
 
 func TestAppendFile_Existing(t *testing.T) {
@@ -252,7 +252,7 @@ func TestListObject_TypeFilter(t *testing.T) {
 	}
 
 	for _, e := range entries {
-		if e.Type !=  "note" {
+		if e.Type != "note" {
 			t.Errorf("unexpected type %q", e.Type)
 		}
 	}
@@ -271,7 +271,7 @@ func TestListObject_Recursive(t *testing.T) {
 	}
 
 	entries, err := v.ListObjects(context.Background(), "", ListOptions{
-		Types: map[string]bool{"note": true},
+		Types:     map[string]bool{"note": true},
 		Recursive: true,
 	})
 	if err != nil {
@@ -345,17 +345,17 @@ func TestReadDailyNoteConfig_NotFound(t *testing.T) {
 }
 
 func TestReadDailyNoteConfig_Valid(t *testing.T) {
-	tests := []struct{
-		name string
+	tests := []struct {
+		name         string
 		fileContents string
-		want DailyNoteConfig
+		want         DailyNoteConfig
 	}{
 		{
 			"full config",
 			`{"folder": "Daily", "format": "YYYY-MM-DD", "template": "Templates/Daily"}`,
 			DailyNoteConfig{
-				Folder: "Daily",
-				Format: "YYYY-MM-DD",
+				Folder:   "Daily",
+				Format:   "YYYY-MM-DD",
 				Template: "Templates/Daily",
 			},
 		},
@@ -363,8 +363,8 @@ func TestReadDailyNoteConfig_Valid(t *testing.T) {
 			"partial config",
 			`{"folder": "Journal"}`,
 			DailyNoteConfig{
-				Folder: "Journal",
-				Format: "",
+				Folder:   "Journal",
+				Format:   "",
 				Template: "",
 			},
 		},
@@ -391,7 +391,7 @@ func TestReadDailyNoteConfig_Valid(t *testing.T) {
 				t.Errorf("unexpected error: %v", err)
 			}
 
-			if cfg.Folder != tt.want.Folder || cfg.Format != tt.want.Format || cfg.Template !=  tt.want.Template {
+			if cfg.Folder != tt.want.Folder || cfg.Format != tt.want.Format || cfg.Template != tt.want.Template {
 				t.Errorf("unexpected config: %+v", cfg)
 			}
 		})
