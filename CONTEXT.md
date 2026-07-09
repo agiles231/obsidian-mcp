@@ -29,11 +29,11 @@ an LLM/agent read and work with an Obsidian vault. It speaks MCP over **stdio**
 
 ## 3. The framework it builds on: `mcp-stdio-go`
 
-- **Repo:** `github.com/agiles231/mcp-stdio-go`, located locally at
-  `~/workspace/mcp-stdio-go` (sibling of this repo).
-- For tight local iteration, a replace directive in `go.mod`:
+- **Repo:** `github.com/agiles231/mcp-stdio-go` (pinned at `v0.1.0` in `go.mod`).
+- Local sibling at `~/workspace/mcp-stdio-go`. For joint iteration use a
+  gitignored workspace — **do not** commit a `replace` (breaks `go install`):
   ```
-  replace github.com/agiles231/mcp-stdio-go => ../mcp-stdio-go
+  go work init . ../mcp-stdio-go
   ```
 - Built from scratch — **no third-party MCP SDK.** Layered packages:
   `protocol` (wire types) ← `transport` (owns stdout, newline-delimited
@@ -133,15 +133,17 @@ See [`docs/use-cases.md`](docs/use-cases.md) for detailed workflows.
 |------|---------|---------|
 | `search_notes` | Full-text search | Knowledge queries |
 
-**Planned skills (slash commands):**
+**Skills (slash commands):**
 
-Skills are templated workflows exposed as slash commands in Claude Code.
+Templated workflows under [`skills/`](skills/) for agents using this server.
+See `skills/README.md` for discovery (symlink or `[skills] paths`).
 
 | Skill | Purpose |
 |-------|---------|
 | `/save-session` | Save conversation summary to vault with templates |
 | `/daily` | Quick daily note operations |
 | `/search` | Search vault and incorporate context |
+| + potential | capture, context, weekly-review, moc, extract, backlinks, template, refactor, orphans, frontmatter, canvas |
 
 ## 7. Working style
 

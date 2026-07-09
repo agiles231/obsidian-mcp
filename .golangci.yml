@@ -1,0 +1,9 @@
+version: "2"
+
+linters:
+  exclusions:
+    rules:
+      # Test scaffolding often ignores setup errors that would fail the test anyway.
+      - path: _test\.go
+        linters:
+          - errcheck

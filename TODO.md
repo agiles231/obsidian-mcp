@@ -41,7 +41,7 @@
 - [x] `write_file` — create/overwrite any file: notes, canvas, etc. (ADR-0009)
 - [x] `append_note` — append content to a note (ADR-0009)
 - [x] `daily_note` — read/append to today's daily note (ADR-0010)
-- [ ] `search_notes` — full-text search across vault
+- [x] `search_notes` — full-text search across vault
 
 ## Features
 
@@ -50,23 +50,27 @@
 
 ## Skills (slash commands)
 
-### Planned
-- [ ] `/save-session` — save conversation summary to vault with templates
-- [ ] `/daily` — quick daily note operations (read/append today's note)
-- [ ] `/search` — search vault and incorporate context into conversation
+See [`skills/`](skills/) — prompt packages for agents using obsidian-mcp.
+Wire discovery via `[skills] paths` or a symlink into `.claude/skills` /
+`.grok/skills` (see `skills/README.md`).
 
-### Potential (to assess)
-- [ ] `/capture` — quick-capture thought to inbox note
-- [ ] `/context` — load relevant notes as conversation context
-- [ ] `/weekly-review` — summarize week's daily notes into weekly note
-- [ ] `/moc` — generate/update Map of Content linking related notes
-- [ ] `/extract` — extract patterns across notes (TODOs, questions)
-- [ ] `/backlinks` — find notes that link to a given note
-- [ ] `/template` — create note from template with variable substitution
-- [ ] `/refactor` — split, merge, restructure notes
-- [ ] `/orphans` — find unlinked notes
-- [ ] `/frontmatter` — bulk edit/standardize YAML frontmatter
-- [ ] `/canvas` — create canvas from conversation or notes
+### Planned
+- [x] `/save-session` — save conversation summary to vault with templates
+- [x] `/daily` — quick daily note operations (read/append today's note)
+- [x] `/search` — search vault and incorporate context into conversation
+
+### Potential (first draft; refine with use)
+- [x] `/capture` — quick-capture thought to inbox note
+- [x] `/context` — load relevant notes as conversation context
+- [x] `/weekly-review` — summarize week's daily notes into weekly note
+- [x] `/moc` — generate/update Map of Content linking related notes
+- [x] `/extract` — extract patterns across notes (TODOs, questions)
+- [x] `/backlinks` — find notes that link to a given note (approx via search)
+- [x] `/template` — create note from template with variable substitution
+- [x] `/refactor` — split, merge, restructure notes
+- [x] `/orphans` — find unlinked notes (approx)
+- [x] `/frontmatter` — bulk edit/standardize YAML frontmatter
+- [x] `/canvas` — create canvas from conversation or notes
 
 ## Future / Deferred (ADR-0009)
 
@@ -80,8 +84,8 @@
 
 ## Documentation
 
-- [ ] README with usage examples
+- [x] README with usage examples
 
 ## Tech Debt
 
-- [ ] Tag `mcp-stdio-go` as `v0.1.0` and pin in `go.mod`
+- [x] Tag `mcp-stdio-go` as `v0.1.0` and pin in `go.mod`

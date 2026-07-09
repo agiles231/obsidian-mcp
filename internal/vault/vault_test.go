@@ -8,6 +8,20 @@ import (
 	"testing"
 )
 
+func mustWriteFile(t *testing.T, path string, data []byte) {
+	t.Helper()
+	if err := os.WriteFile(path, data, 0644); err != nil {
+		t.Fatalf("WriteFile %s: %v", path, err)
+	}
+}
+
+func mustMkdirAll(t *testing.T, path string) {
+	t.Helper()
+	if err := os.MkdirAll(path, 0755); err != nil {
+		t.Fatalf("MkdirAll %s: %v", path, err)
+	}
+}
+
 func TestCleanVaultRel(t *testing.T) {
 	tests := []struct {
 		name    string
@@ -211,9 +225,9 @@ func TestAppendFile_DenyList(t *testing.T) {
 
 func TestListObject_Basic(t *testing.T) {
 	dir := t.TempDir()
-	os.WriteFile(filepath.Join(dir, "note.md"), []byte("test"), 0644)
-	os.WriteFile(filepath.Join(dir, "image.md"), []byte("test"), 0644)
-	os.MkdirAll(filepath.Join(dir, "folder"), 0755)
+	mustWriteFile(t, filepath.Join(dir, "note.md"), []byte("test"))
+	mustWriteFile(t, filepath.Join(dir, "image.md"), []byte("test"))
+	mustMkdirAll(t, filepath.Join(dir, "folder"))
 
 	v, err := Open(Config{Name: "test", Root: dir})
 	if err != nil {
@@ -231,10 +245,10 @@ func TestListObject_Basic(t *testing.T) {
 
 func TestListObject_TypeFilter(t *testing.T) {
 	dir := t.TempDir()
-	os.WriteFile(filepath.Join(dir, "a.md"), []byte("test"), 0644)
-	os.WriteFile(filepath.Join(dir, "b.md"), []byte("test"), 0644)
-	os.WriteFile(filepath.Join(dir, "img.png"), []byte(""), 0644)
-	os.MkdirAll(filepath.Join(dir, "sub"), 0755)
+	mustWriteFile(t, filepath.Join(dir, "a.md"), []byte("test"))
+	mustWriteFile(t, filepath.Join(dir, "b.md"), []byte("test"))
+	mustWriteFile(t, filepath.Join(dir, "img.png"), []byte(""))
+	mustMkdirAll(t, filepath.Join(dir, "sub"))
 
 	v, err := Open(Config{Name: "test", Root: dir})
 	if err != nil {
@@ -260,10 +274,10 @@ func TestListObject_TypeFilter(t *testing.T) {
 
 func TestListObject_Recursive(t *testing.T) {
 	dir := t.TempDir()
-	os.WriteFile(filepath.Join(dir, "top.md"), []byte("test"), 0644)
-	os.MkdirAll(filepath.Join(dir, "a/b"), 0755)
-	os.WriteFile(filepath.Join(dir, "a/mid.md"), []byte("test"), 0644)
-	os.WriteFile(filepath.Join(dir, "a/b/deep.md"), []byte("test"), 0644)
+	mustWriteFile(t, filepath.Join(dir, "top.md"), []byte("test"))
+	mustMkdirAll(t, filepath.Join(dir, "a/b"))
+	mustWriteFile(t, filepath.Join(dir, "a/mid.md"), []byte("test"))
+	mustWriteFile(t, filepath.Join(dir, "a/b/deep.md"), []byte("test"))
 
 	v, err := Open(Config{Name: "test", Root: dir})
 	if err != nil {
@@ -284,9 +298,9 @@ func TestListObject_Recursive(t *testing.T) {
 
 func TestListObject_DenyList(t *testing.T) {
 	dir := t.TempDir()
-	os.WriteFile(filepath.Join(dir, "public.md"), []byte("test"), 0644)
-	os.MkdirAll(filepath.Join(dir, "private"), 0755)
-	os.WriteFile(filepath.Join(dir, "private/secret.md"), []byte("test"), 0644)
+	mustWriteFile(t, filepath.Join(dir, "public.md"), []byte("test"))
+	mustMkdirAll(t, filepath.Join(dir, "private"))
+	mustWriteFile(t, filepath.Join(dir, "private/secret.md"), []byte("test"))
 
 	v, err := Open(Config{Name: "test", Root: dir, Deny: []string{"private/**"}})
 	if err != nil {
@@ -308,10 +322,10 @@ func TestListObject_DenyList(t *testing.T) {
 
 func TestListObject_Subdir(t *testing.T) {
 	dir := t.TempDir()
-	os.MkdirAll(filepath.Join(dir, "notes"), 0755)
-	os.WriteFile(filepath.Join(dir, "notes/a.md"), []byte("test"), 0644)
-	os.WriteFile(filepath.Join(dir, "notes/b.md"), []byte("test"), 0644)
-	os.WriteFile(filepath.Join(dir, "other.md"), []byte("test"), 0644)
+	mustMkdirAll(t, filepath.Join(dir, "notes"))
+	mustWriteFile(t, filepath.Join(dir, "notes/a.md"), []byte("test"))
+	mustWriteFile(t, filepath.Join(dir, "notes/b.md"), []byte("test"))
+	mustWriteFile(t, filepath.Join(dir, "other.md"), []byte("test"))
 
 	v, err := Open(Config{Name: "test", Root: dir})
 	if err != nil {

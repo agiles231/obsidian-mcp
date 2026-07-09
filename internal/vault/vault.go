@@ -291,7 +291,7 @@ func (v *Vault) listDir(ctx context.Context, dir string, opts ListOptions) ([]Ob
 		v.log.Warn("open dir failed", "path", dir, "err", err)
 		return nil, mapFSError(err)
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 
 	entries, err := f.ReadDir(-1)
 	if err != nil {

@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"flag"
+	"fmt"
 	"log/slog"
 	"os"
 	"os/signal"
@@ -14,17 +15,26 @@ import (
 	"github.com/agiles231/obsidian-mcp/internal/vault"
 )
 
+// version is set at release build time via -ldflags "-X main.version=vX.Y.Z".
+var version = "dev"
+
 func main() {
 	var (
-		vaultName  = flag.String("vault", "", "logical vault name (required)")
-		vaultRoot  = flag.String("root", "", "path to vault root directory (required)")
-		readAllow  = flag.String("read-allow", "", "comma-separated read allow globs (empty = all)")
-		writeAllow = flag.String("write-allow", "", "comma-separated write allow globs (empty = none)")
-		deny       = flag.String("deny", ".obsidian", "comma-separated deny globs")
+		vaultName   = flag.String("vault", "", "logical vault name (required)")
+		vaultRoot   = flag.String("root", "", "path to vault root directory (required)")
+		readAllow   = flag.String("read-allow", "", "comma-separated read allow globs (empty = all)")
+		writeAllow  = flag.String("write-allow", "", "comma-separated write allow globs (empty = none)")
+		deny        = flag.String("deny", ".obsidian", "comma-separated deny globs")
+		showVersion = flag.Bool("version", false, "print version and exit")
 	)
 	flag.Parse()
 
 	logger := slog.New(slog.NewTextHandler(os.Stderr, nil))
+
+	if *showVersion {
+		fmt.Println(version)
+		os.Exit(0)
+	}
 
 	if *vaultName == "" || *vaultRoot == "" {
 		logger.Error("--vault and --root are required")
@@ -58,7 +68,7 @@ func main() {
 	dailyNote := tools.NewDailyNote(registry)
 	listObjects := tools.NewListObjects(registry)
 
-	srv := mcp.NewServer("obsidian-mcp", "0.1.0",
+	srv := mcp.NewServer("obsidian-mcp", version,
 		mcp.WithLogger(logger),
 	)
 	srv.Register(readFile)
@@ -71,7 +81,7 @@ func main() {
 	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer cancel()
 
-	logger.Info("starting obsidian-mcp", "vault", *vaultName)
+	logger.Info("starting obsidian-mcp", "version", version, "vault", *vaultName)
 	if err := srv.Run(ctx); err != nil {
 		logger.Error("server error", "err", err)
 		os.Exit(1)
