@@ -1,7 +1,6 @@
 package search
 
 import (
-	"math"
 	"strings"
 	"unicode"
 	"unicode/utf8"
