@@ -97,6 +97,9 @@ func Open(cfg Config) (*Vault, error) {
 func (v *Vault) Name() string { return v.name }
 
 func (v *Vault) BuildSearchIndex(ctx context.Context) error {
+	if v.index != nil {
+		return nil
+	}
 	index := search.NewIndex()
 	entries, err := v.ListObjects(ctx, "", ListOptions{
 		Types: map[string]bool{"note": true},
