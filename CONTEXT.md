@@ -66,7 +66,17 @@ srv := mcp.NewServer("obsidian-mcp", "0.1.0",
     mcp.WithLogger(logger),
 )
 srv.Register(tool1, tool2, ...)
+srv.RegisterResources(resources) // optional; advertises resources capability
 err := srv.Run(ctx)
+```
+
+Resources (framework):
+```go
+type Resources interface {
+    List(ctx context.Context, cursor string) ([]ResourceDescriptor, string, error)
+    Read(ctx context.Context, uri string) ([]ResourceContents, error)
+}
+// Optional: ResourceTemplater for resources/templates/list
 ```
 
 ## 4. Architecture decisions
@@ -86,6 +96,7 @@ See [`docs/adr/`](docs/adr/) for full details:
 | [0009](docs/adr/0009-write-tool-strategy.md) | Write tool strategy: general write_file, no diffs |
 | [0010](docs/adr/0010-daily-note-cli-integration.md) | Daily note: Obsidian CLI with filesystem fallback |
 | [0011](docs/adr/0011-stdlib-only-search.md) | Stdlib-only search index (no external deps) |
+| [0014](docs/adr/0014-mcp-resources.md) | MCP resources for vault ambient context |
 
 **URN format:** `urn:obsidian:<user>:<vault>:<type>:<identifier>#<anchor>`
 - In v1: `user` empty, `type` is `note`/`folder`/`canvas`/`attachment` (ADR-0008)
@@ -106,6 +117,7 @@ See [`docs/adr/`](docs/adr/) for full details:
 - **`internal/tools/write_file.go`** — Create/overwrite files
 - **`internal/tools/append_note.go`** — Append to markdown notes
 - **`internal/tools/daily_note.go`** — Daily note with Obsidian CLI fallback (ADR-0010)
+- **`internal/resources/vault.go`** — MCP resources over vault objects (list/read/templates)
 - **`cmd/obsidian-mcp/`** — CLI entry point with flag-based config
 - **Vault registry** — supports multiple vaults (single-vault for now)
 

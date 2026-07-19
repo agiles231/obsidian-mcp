@@ -22,3 +22,4 @@ record. When a decision changes, add a new ADR that supersedes the old one
 | [0009](0009-write-tool-strategy.md) | Write tool strategy: general write_file, no diffs, no sections | Accepted |
 | [0010](0010-daily-note-cli-integration.md) | Daily note: Obsidian CLI with filesystem fallback | Accepted |
 | [0011](0011-stdlib-only-search.md) | Stdlib-only search index | Accepted |
+| [0014](0014-mcp-resources.md) | MCP resources for vault ambient context | Accepted |

@@ -224,7 +224,7 @@ These are reserved now so future use does not change the grammar:
 
 ## 10. Non-goals
 
-- This spec does not define MCP *resources*; it defines the identifier they
-  will reuse when added.
+- This spec does not define MCP *resources* protocol semantics; resource URIs
+  reuse the canonical URN form defined here (see server `resources/*` methods).
 - It does not provide rename stability for `type=note` (see §1, §9).
 - It does not define the `obsidian://open?...` convenience locator.

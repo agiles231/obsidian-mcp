@@ -84,6 +84,21 @@ Use an absolute path to the binary if it is not on `PATH`.
 | `daily_note` | Read/append/create today's daily note |
 | `search_notes` | Full-text search (stdlib TF-IDF index) |
 
+## Resources
+
+The server advertises the MCP **resources** capability for browsable,
+read-only vault context (same allow/deny rules as tools):
+
+| Method | Behavior |
+|--------|----------|
+| `resources/list` | Paginated list of notes, canvases, and attachments (URN URIs) |
+| `resources/read` | Read content by URN or bare vault-relative path |
+| `resources/templates/list` | URN template: `urn:obsidian::{vault}:{type}:{+path}` |
+
+Notes and canvases are returned as text; binary attachments as base64 blobs.
+Folders are not listed as resources (use `list_objects`). Subscriptions and
+`listChanged` notifications are not supported yet.
+
 Notes are identified with `urn:obsidian:` URNs or bare vault-relative paths.
 See [`docs/urn-spec.md`](docs/urn-spec.md).
 

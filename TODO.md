@@ -80,7 +80,7 @@ Wire discovery via `[skills] paths` or a symlink into `.claude/skills` /
 - [ ] Wikilink resolution (`[[Note]]` input)
 - [ ] Frontmatter parsing and filtering
 - [ ] Backlink discovery ("what links to this note?")
-- [ ] MCP resources (browsable context, ambient access)
+- [x] MCP resources (browsable context, ambient access)
 
 ## Documentation
 

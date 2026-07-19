@@ -12,6 +12,7 @@ import (
 	"syscall"
 
 	"github.com/agiles231/mcp-stdio-go"
+	"github.com/agiles231/obsidian-mcp/internal/resources"
 	"github.com/agiles231/obsidian-mcp/internal/tools"
 	"github.com/agiles231/obsidian-mcp/internal/vault"
 )
@@ -90,6 +91,7 @@ func main() {
 	srv.Register(searchNotes)
 	srv.Register(dailyNote)
 	srv.Register(listObjects)
+	srv.RegisterResources(resources.NewVaultResources(registry))
 
 	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer cancel()
